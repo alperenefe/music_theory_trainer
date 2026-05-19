@@ -1,3 +1,5 @@
+import 'exercise_goal.dart';
+
 final class PracticePrefs {
   static const int defaultPoolMinMidi = 40;
   static const int defaultPoolMaxMidi = 71;
@@ -6,10 +8,7 @@ final class PracticePrefs {
   const PracticePrefs({
     this.poolMinMidi = PracticePrefs.defaultPoolMinMidi,
     this.poolMaxMidi = PracticePrefs.defaultPoolMaxMidi,
-    this.goalKind,
-    this.goalTarget = 500,
-    this.goalProgress = 0,
-    this.goalStartedAtMillis = 0,
+    this.exerciseGoals = const {},
     this.soundEnabled = true,
     this.onboardingDone = false,
     this.referenceA4Hz = PracticePrefs.defaultReferenceA4Hz,
@@ -17,22 +16,33 @@ final class PracticePrefs {
 
   final int poolMinMidi;
   final int poolMaxMidi;
-  final String? goalKind;
-  final int goalTarget;
-  final int goalProgress;
-  final int goalStartedAtMillis;
+  final Map<String, ExerciseGoal> exerciseGoals;
   final bool soundEnabled;
   final bool onboardingDone;
   final double referenceA4Hz;
 
+  ExerciseGoal? goalForKind(String kind) {
+    final g = exerciseGoals[kind];
+    if (g == null || !g.enabled) {
+      return null;
+    }
+    return g;
+  }
+
+  PracticePrefs withGoal(String kind, ExerciseGoal? goal) {
+    final next = Map<String, ExerciseGoal>.from(exerciseGoals);
+    if (goal == null || !goal.enabled) {
+      next.remove(kind);
+    } else {
+      next[kind] = goal;
+    }
+    return copyWith(exerciseGoals: next);
+  }
+
   PracticePrefs copyWith({
     int? poolMinMidi,
     int? poolMaxMidi,
-    String? goalKind,
-    bool clearGoal = false,
-    int? goalTarget,
-    int? goalProgress,
-    int? goalStartedAtMillis,
+    Map<String, ExerciseGoal>? exerciseGoals,
     bool? soundEnabled,
     bool? onboardingDone,
     double? referenceA4Hz,
@@ -40,10 +50,7 @@ final class PracticePrefs {
     return PracticePrefs(
       poolMinMidi: poolMinMidi ?? this.poolMinMidi,
       poolMaxMidi: poolMaxMidi ?? this.poolMaxMidi,
-      goalKind: clearGoal ? null : (goalKind ?? this.goalKind),
-      goalTarget: goalTarget ?? this.goalTarget,
-      goalProgress: goalProgress ?? this.goalProgress,
-      goalStartedAtMillis: goalStartedAtMillis ?? this.goalStartedAtMillis,
+      exerciseGoals: exerciseGoals ?? this.exerciseGoals,
       soundEnabled: soundEnabled ?? this.soundEnabled,
       onboardingDone: onboardingDone ?? this.onboardingDone,
       referenceA4Hz: referenceA4Hz ?? this.referenceA4Hz,
@@ -53,10 +60,9 @@ final class PracticePrefs {
   Map<String, Object?> toJson() => {
     'poolMinMidi': poolMinMidi,
     'poolMaxMidi': poolMaxMidi,
-    'goalKind': goalKind,
-    'goalTarget': goalTarget,
-    'goalProgress': goalProgress,
-    'goalStartedAtMillis': goalStartedAtMillis,
+    'exerciseGoals': exerciseGoals.map(
+      (k, v) => MapEntry(k, v.toJson()),
+    ),
     'soundEnabled': soundEnabled,
     'onboardingDone': onboardingDone,
     'referenceA4Hz': referenceA4Hz,
@@ -100,17 +106,57 @@ final class PracticePrefs {
       ref = 455;
     }
 
+    final goals = _parseExerciseGoals(j, ni);
+
     return PracticePrefs(
       poolMinMidi: ni(j['poolMinMidi'], defaultPoolMinMidi),
       poolMaxMidi: ni(j['poolMaxMidi'], defaultPoolMaxMidi),
-      goalKind: j['goalKind'] as String?,
-      goalTarget: ni(j['goalTarget'], 500),
-      goalProgress: ni(j['goalProgress'], 0),
-      goalStartedAtMillis: ni(j['goalStartedAtMillis'], 0),
+      exerciseGoals: goals,
       soundEnabled: soundEnabled,
       onboardingDone: onboardingDone,
       referenceA4Hz: ref,
     );
+  }
+
+  static Map<String, ExerciseGoal> _parseExerciseGoals(
+    Map<String, Object?> j,
+    int Function(Object?, int) ni,
+  ) {
+    final raw = j['exerciseGoals'];
+    if (raw is Map) {
+      final out = <String, ExerciseGoal>{};
+      for (final e in raw.entries) {
+        final key = e.key.toString();
+        final val = e.value;
+        if (val is Map) {
+          out[key] = ExerciseGoal.fromJson(
+            Map<String, Object?>.from(val),
+          );
+        }
+      }
+      return out;
+    }
+
+    final legacyKind = j['goalKind'] as String?;
+    if (legacyKind == null || legacyKind.isEmpty) {
+      return {};
+    }
+    return {
+      legacyKind: ExerciseGoal(
+        enabled: true,
+        target: ni(j['goalTarget'], ExerciseGoal.defaultTarget),
+        progress: ni(j['goalProgress'], 0),
+        startedAtMillis: ni(j['goalStartedAtMillis'], 0),
+        accuracyPercent: ni(
+          j['goalAccuracyPercent'],
+          ExerciseGoal.defaultAccuracyPercent,
+        ).clamp(50, 100),
+        maxAvgLatencyMs: ni(
+          j['goalMaxAvgLatencyMs'],
+          ExerciseGoal.defaultMaxAvgLatencyMs,
+        ).clamp(800, 30000),
+      ),
+    };
   }
 
   static bool _parseOnboardingDone(Map<String, Object?> j) {

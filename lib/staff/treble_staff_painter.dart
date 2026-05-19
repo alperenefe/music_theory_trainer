@@ -13,12 +13,18 @@ final class TrebleStaffPainter extends CustomPainter {
   TrebleStaffPainter({
     required this.geometry,
     required this.notes,
+    this.ledgerSlots = const [],
     this.highlightSlot,
+    this.wrongHighlightSlot,
+    this.correctHighlightSlot,
   });
 
   final StaffGeometry geometry;
   final List<TrebleStaffNoteSpec> notes;
+  final List<int> ledgerSlots;
   final int? highlightSlot;
+  final int? wrongHighlightSlot;
+  final int? correctHighlightSlot;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -37,22 +43,30 @@ final class TrebleStaffPainter extends CustomPainter {
       _drawNote(canvas, n);
     }
     if (highlightSlot != null) {
-      _drawHighlight(canvas, highlightSlot!);
+      _drawHighlight(canvas, highlightSlot!, DesignTokens.blue600);
+    }
+    if (wrongHighlightSlot != null) {
+      _drawHighlight(canvas, wrongHighlightSlot!, DesignTokens.rose400);
+    }
+    if (correctHighlightSlot != null) {
+      _drawHighlight(canvas, correctHighlightSlot!, DesignTokens.green400);
     }
   }
 
   void _drawLedgers(Canvas canvas, Paint ledgerPaint) {
     final lx0 = geometry.noteHeadX - 20;
     final lx1 = geometry.noteHeadX + 20;
-    final slots = notes.map((e) => e.slot).toSet();
+    final slots = <int>{...ledgerSlots};
+    for (final n in notes) {
+      final s = n.slot;
+      if (s < 0 && s.isEven) {
+        slots.add(s);
+      } else if (s > 8 && s.isEven) {
+        slots.add(s);
+      }
+    }
     for (final s in slots) {
-      if (s < 0) {
-        final y = geometry.yForSlot(s);
-        _drawDashedHLine(canvas, y, lx0, lx1, ledgerPaint);
-      } else if (s > 8) {
-        if (s.isOdd) {
-          continue;
-        }
+      if (s < 0 || (s > 8 && s.isEven)) {
         final y = geometry.yForSlot(s);
         _drawDashedHLine(canvas, y, lx0, lx1, ledgerPaint);
       }
@@ -79,16 +93,22 @@ final class TrebleStaffPainter extends CustomPainter {
   }
 
   void _drawClef(Canvas canvas) {
+    final fontSize = geometry.clefFontSize;
     final tp = TextPainter(
-      text: const TextSpan(
+      text: TextSpan(
         text: '𝄞',
-        style: TextStyle(color: DesignTokens.slate200, fontSize: 62, height: 1),
+        style: TextStyle(
+          color: DesignTokens.slate200,
+          fontSize: fontSize,
+          height: 1,
+        ),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
+    final anchorY = (geometry.yForSlot(0) + geometry.yForSlot(8)) / 2;
     tp.paint(
       canvas,
-      Offset(geometry.clefX, geometry.yForSlot(2) - tp.height * 0.5),
+      Offset(geometry.clefX, anchorY - tp.height * 0.5),
     );
   }
 
@@ -106,7 +126,7 @@ final class TrebleStaffPainter extends CustomPainter {
     canvas.drawPath(oval, stroke);
   }
 
-  void _drawHighlight(Canvas canvas, int slot) {
+  void _drawHighlight(Canvas canvas, int slot, Color color) {
     final y = geometry.yForSlot(slot);
     final r = RRect.fromRectAndRadius(
       Rect.fromCenter(
@@ -118,7 +138,7 @@ final class TrebleStaffPainter extends CustomPainter {
     );
     canvas.drawRRect(
       r,
-      Paint()..color = DesignTokens.blue600.withValues(alpha: 0.22),
+      Paint()..color = color.withValues(alpha: 0.28),
     );
   }
 
@@ -126,6 +146,9 @@ final class TrebleStaffPainter extends CustomPainter {
   bool shouldRepaint(covariant TrebleStaffPainter oldDelegate) {
     return oldDelegate.geometry != geometry ||
         oldDelegate.notes != notes ||
-        oldDelegate.highlightSlot != highlightSlot;
+        oldDelegate.ledgerSlots != ledgerSlots ||
+        oldDelegate.highlightSlot != highlightSlot ||
+        oldDelegate.wrongHighlightSlot != wrongHighlightSlot ||
+        oldDelegate.correctHighlightSlot != correctHighlightSlot;
   }
 }

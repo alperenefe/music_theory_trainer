@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import '../theory/theory_note_labels.dart';
+
 final class GuitarNote {
   const GuitarNote({required this.string, required this.fret});
 
@@ -11,19 +13,18 @@ final class GuitarNote {
   static const _openName = ['Mi', 'Si', 'Sol', 'Re', 'La', 'Mi'];
   static const _stringLabel = ['e', 'B', 'G', 'D', 'A', 'E'];
 
-  // Chromatic note names (Turkish)
   static const _chromaticTr = [
     'Do',
-    'Do#',
+    'Do diyez',
     'Re',
-    'Re#',
+    'Re diyez',
     'Mi',
     'Fa',
-    'Fa#',
+    'Fa diyez',
     'Sol',
-    'Sol#',
+    'Sol diyez',
     'La',
-    'La#',
+    'La diyez',
     'Si',
   ];
 
@@ -37,7 +38,8 @@ final class GuitarNote {
 
   double get frequency => 440.0 * pow(2.0, (midi - 69) / 12.0);
 
-  static String noteNameForMidi(int midi) => _chromaticTr[midi % 12];
+  static String noteNameForMidi(int midi) =>
+      TheoryNoteLabels.label(midi, withOctave: false);
 
   static List<GuitarNote> allNotes({int minFret = 0, int maxFret = 7}) {
     final out = <GuitarNote>[];

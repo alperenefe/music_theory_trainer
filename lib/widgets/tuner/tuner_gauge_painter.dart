@@ -36,13 +36,7 @@ final class TunerGaugePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 14
       ..strokeCap = StrokeCap.round;
-    canvas.drawArc(
-      arcRect,
-      -math.pi / 2 - okSpan,
-      2 * okSpan,
-      false,
-      okZone,
-    );
+    canvas.drawArc(arcRect, -math.pi / 2 - okSpan, 2 * okSpan, false, okZone);
 
     final tick = Paint()
       ..color = DesignTokens.slate500
@@ -50,7 +44,10 @@ final class TunerGaugePainter extends CustomPainter {
     for (final m in [-50, -25, 0, 25, 50]) {
       final a = _angleForCents(m.toDouble());
       final i = Offset(cx + (r - 4) * math.cos(a), cy + (r - 4) * math.sin(a));
-      final o = Offset(cx + (r + 10) * math.cos(a), cy + (r + 10) * math.sin(a));
+      final o = Offset(
+        cx + (r + 10) * math.cos(a),
+        cy + (r + 10) * math.sin(a),
+      );
       canvas.drawLine(i, o, tick);
     }
 

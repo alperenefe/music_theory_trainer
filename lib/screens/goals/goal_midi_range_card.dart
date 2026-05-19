@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_strings.dart';
-import '../../models/notation_pitch.dart';
+import '../../theory/theory_note_labels.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
 import '../../widgets/cards/soft_card.dart';
@@ -25,7 +25,6 @@ final class GoalMidiRangeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
-    final pool = NotationPitch.trainingPool();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -34,6 +33,14 @@ final class GoalMidiRangeCard extends StatelessWidget {
           style: t.titleSmall?.copyWith(
             color: DesignTokens.white,
             fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          AppStrings.goalRangeStaffNote,
+          style: t.bodySmall?.copyWith(
+            color: DesignTokens.slate400,
+            height: 1.4,
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -60,7 +67,7 @@ final class GoalMidiRangeCard extends StatelessWidget {
                             (m) => DropdownMenuItem(
                               value: m,
                               child: Text(
-                                '$m · ${NotationPitch.displayForMidi(m, pool)}',
+                                TheoryNoteLabels.label(m, withOctave: true),
                                 style: const TextStyle(
                                   color: DesignTokens.white,
                                 ),
@@ -88,7 +95,7 @@ final class GoalMidiRangeCard extends StatelessWidget {
                             (m) => DropdownMenuItem(
                               value: m,
                               child: Text(
-                                '$m · ${NotationPitch.displayForMidi(m, pool)}',
+                                TheoryNoteLabels.label(m, withOctave: true),
                                 style: const TextStyle(
                                   color: DesignTokens.white,
                                 ),

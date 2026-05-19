@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:music_theory_trainer/config/goal_kind.dart';
 import 'package:music_theory_trainer/l10n/app_strings.dart';
+import 'package:music_theory_trainer/models/exercise_goal.dart';
 import 'package:music_theory_trainer/models/practice_attempt.dart';
 import 'package:music_theory_trainer/models/practice_prefs.dart';
 import 'package:music_theory_trainer/services/goal_tracker.dart';
@@ -21,10 +23,14 @@ void main() {
     final prefs = PracticePrefsRepository();
     await prefs.save(
       const PracticePrefs(
-        goalKind: 'mcq',
-        goalTarget: 2,
-        goalProgress: 0,
-        goalStartedAtMillis: 100,
+        exerciseGoals: {
+          GoalKind.mcq: ExerciseGoal(
+            enabled: true,
+            target: 2,
+            progress: 0,
+            startedAtMillis: 100,
+          ),
+        },
       ),
     );
     await stats.append(
@@ -43,7 +49,7 @@ void main() {
     );
     expect(r, isNull);
     final p = await prefs.load();
-    expect(p.goalProgress, 0);
+    expect(p.exerciseGoals[GoalKind.mcq]!.progress, 0);
   });
 
   test('hedef dolunca rapor ve ilerleme sıfırlanır', () async {
@@ -51,10 +57,14 @@ void main() {
     final prefs = PracticePrefsRepository();
     await prefs.save(
       const PracticePrefs(
-        goalKind: 'mcq',
-        goalTarget: 2,
-        goalProgress: 0,
-        goalStartedAtMillis: 500,
+        exerciseGoals: {
+          GoalKind.mcq: ExerciseGoal(
+            enabled: true,
+            target: 2,
+            progress: 0,
+            startedAtMillis: 500,
+          ),
+        },
       ),
     );
     await stats.append(
@@ -90,9 +100,36 @@ void main() {
     );
     expect(report, isNotNull);
     expect(report!.summary.total, 2);
-    expect(report.bestStreak, 1);
     final after = await prefs.load();
-    expect(after.goalProgress, 0);
-    expect(after.goalStartedAtMillis, greaterThan(500));
+    expect(after.exerciseGoals[GoalKind.mcq]!.progress, 0);
+    expect(
+      after.exerciseGoals[GoalKind.mcq]!.startedAtMillis,
+      greaterThan(500),
+    );
+  });
+
+  test('paralel hedefler birbirini etkilemez', () async {
+    final stats = StatsRepository();
+    final prefs = PracticePrefsRepository();
+    await prefs.save(
+      const PracticePrefs(
+        exerciseGoals: {
+          GoalKind.mcq: ExerciseGoal(enabled: true, target: 5, progress: 0),
+          GoalKind.placement: ExerciseGoal(
+            enabled: true,
+            target: 3,
+            progress: 0,
+          ),
+        },
+      ),
+    );
+    await GoalTracker.onAttemptRecorded(
+      exercise: AppStrings.exerciseMcq,
+      statsRepo: stats,
+      prefsRepo: prefs,
+    );
+    final p = await prefs.load();
+    expect(p.exerciseGoals[GoalKind.mcq]!.progress, 1);
+    expect(p.exerciseGoals[GoalKind.placement]!.progress, 0);
   });
 }

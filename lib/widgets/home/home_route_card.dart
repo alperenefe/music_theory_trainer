@@ -4,7 +4,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../l10n/app_strings.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
+import '../../services/goal_progress_snapshot.dart';
 import '../cards/soft_card.dart';
+import 'activity_goal_progress_strip.dart';
 
 final class HomeRouteCard extends StatelessWidget {
   const HomeRouteCard({
@@ -16,6 +18,7 @@ final class HomeRouteCard extends StatelessWidget {
     required this.onTap,
     required this.index,
     this.showStartLink = true,
+    this.goalProgress,
   });
 
   final IconData icon;
@@ -25,6 +28,7 @@ final class HomeRouteCard extends StatelessWidget {
   final VoidCallback onTap;
   final int index;
   final bool showStartLink;
+  final GoalProgressSnapshot? goalProgress;
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +75,12 @@ final class HomeRouteCard extends StatelessWidget {
                               height: 1.4,
                             ),
                           ),
+                          if (goalProgress != null) ...[
+                            const SizedBox(height: AppSpacing.md),
+                            ActivityGoalProgressStrip(
+                              snapshot: goalProgress!,
+                            ),
+                          ],
                           if (showStartLink) ...[
                             const SizedBox(height: AppSpacing.md),
                             Align(

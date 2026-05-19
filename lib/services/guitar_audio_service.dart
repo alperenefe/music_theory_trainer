@@ -1,7 +1,7 @@
 import 'dart:math' as math;
-import 'dart:typed_data';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
 
 import '../audio/wav_pcm.dart';
 import 'app_sound_policy.dart';
@@ -21,7 +21,9 @@ final class GuitarAudioService {
       final wav = _cache[midi] ??= _synthesize(midi);
       await _player.stop();
       await _player.play(BytesSource(wav));
-    } catch (_) {}
+    } catch (e, st) {
+      debugPrint('GuitarAudioService.playMidi failed: $e\n$st');
+    }
   }
 
   Future<void> dispose() async {

@@ -16,12 +16,28 @@ void main() {
       expect(g.nearestSlotForY(yF - 0.01, slots), 1);
     });
 
-    test('eşitlik boyuta göre', () {
+    test('eşitlik boyut ve slot aralığına göre', () {
       final a = StaffGeometry(const Size(100, 200));
       final b = StaffGeometry(const Size(100, 200));
       final c = StaffGeometry(const Size(101, 200));
+      final d = StaffGeometry(const Size(100, 200), slotMin: -4, slotMax: 8);
       expect(a == b, isTrue);
       expect(a == c, isFalse);
+      expect(a == d, isFalse);
+    });
+
+    test('uç slotlar dikey alana sığar', () {
+      final slots = NotationPitch.allStaffSlots()..sort();
+      final g = StaffGeometry(
+        const Size(300, 220),
+        slotMin: slots.first,
+        slotMax: slots.last,
+      );
+      final yHigh = g.yForSlot(slots.last);
+      final yLow = g.yForSlot(slots.first);
+      expect(yHigh, greaterThanOrEqualTo(12));
+      expect(yLow, lessThanOrEqualTo(208));
+      expect(yHigh, lessThan(yLow));
     });
   });
 }

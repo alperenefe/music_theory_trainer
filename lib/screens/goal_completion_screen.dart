@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
-import '../models/notation_pitch.dart';
 import '../services/goal_tracker.dart';
+import '../utils/stats_midi_label.dart';
 import '../theme/app_spacing.dart';
 import '../theme/design_tokens.dart';
 import '../widgets/cards/soft_card.dart';
@@ -16,7 +16,6 @@ final class GoalCompletionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
-    final pool = NotationPitch.trainingPool();
     final s = report.summary;
     return Scaffold(
       backgroundColor: DesignTokens.slate950,
@@ -80,16 +79,18 @@ final class GoalCompletionScreen extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            NotationPitch.displayForMidi(m.midi, pool),
+                            StatsMidiLabel.forMidi(m.midi, guitarStyle: false),
                             style: t.bodyMedium?.copyWith(
                               color: DesignTokens.white,
                             ),
                           ),
                         ),
                         Text(
+                          '${(m.accuracy * 100).round()}% · '
                           '${m.correct}/${m.total} · ${m.avgMs} ms',
                           style: t.labelMedium?.copyWith(
                             color: DesignTokens.slate400,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],

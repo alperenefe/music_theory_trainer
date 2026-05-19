@@ -33,6 +33,24 @@ void main() {
       expect(rows.first.correct, isTrue);
     });
 
+    test('append en fazla maxStoredAttempts tutar', () async {
+      for (var i = 0; i < StatsRepository.maxStoredAttempts + 50; i++) {
+        await repo.append(
+          PracticeAttempt(
+            exercise: 'yerlestir',
+            midi: 60 + (i % 12),
+            correct: i.isEven,
+            latencyMs: 10,
+            atMillis: i,
+          ),
+        );
+      }
+      final rows = await repo.load();
+      expect(rows.length, StatsRepository.maxStoredAttempts);
+      expect(rows.first.atMillis, greaterThanOrEqualTo(50));
+      expect(rows.last.atMillis, StatsRepository.maxStoredAttempts + 49);
+    });
+
     test('clear temizler', () async {
       await repo.append(
         const PracticeAttempt(

@@ -6,6 +6,7 @@ import '../l10n/app_strings.dart';
 import '../models/notation_pitch.dart';
 import '../models/practice_attempt.dart';
 import '../services/goal_tracker.dart';
+import '../services/practice_history.dart';
 import '../services/practice_prefs_repository.dart';
 import '../services/stats_repository.dart';
 import '../services/target_picker.dart';
@@ -13,9 +14,9 @@ import '../staff/treble_staff_painter.dart';
 import '../theme/app_spacing.dart';
 import '../theme/design_tokens.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
-import '../widgets/cards/soft_card.dart';
+import '../widgets/exercise/exercise_screen_top_bar.dart';
 import '../widgets/exercise/feedback_bottom_bar.dart';
-import '../widgets/exercise/staff_interactive_field.dart';
+import '../widgets/exercise/staff_exercise_card.dart';
 import '../widgets/text/section_header.dart';
 import 'goal_completion_screen.dart';
 
@@ -55,7 +56,7 @@ final class _PlacementScreenState extends State<PlacementScreen> {
       return;
     }
     setState(() {
-      _history = h;
+      _history = PracticeHistory.forExercise(h, AppStrings.exercisePlacement);
       _loading = false;
       _newRound();
     });
@@ -81,13 +82,12 @@ final class _PlacementScreenState extends State<PlacementScreen> {
 
   Future<void> _submit() async {
     if (_slot == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(AppStrings.selectSlotFirst)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.selectSlotFirst)),
+      );
       return;
     }
-    final got = NotationPitch.midiAtSlot(_slot!);
-    final ok = got != null && got == _target.midi;
+    final ok = _slot == _target.staffSlot;
     final ms = DateTime.now().millisecondsSinceEpoch - _t0;
     final attempt = PracticeAttempt(
       exercise: AppStrings.exercisePlacement,
@@ -102,7 +102,7 @@ final class _PlacementScreenState extends State<PlacementScreen> {
       return;
     }
     setState(() {
-      _history = h;
+      _history = PracticeHistory.forExercise(h, AppStrings.exercisePlacement);
       _lastOk = ok;
       _feedback = true;
       if (!ok) {
@@ -146,28 +146,8 @@ final class _PlacementScreenState extends State<PlacementScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Padding(
-                      padding: AppSpacing.screenH.copyWith(top: AppSpacing.sm),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            icon: const Icon(Icons.arrow_back_rounded),
-                            color: DesignTokens.slate200,
-                          ),
-                          const SizedBox(width: AppSpacing.xs),
-                          Expanded(
-                            child: Text(
-                              AppStrings.placementTitle,
-                              style: Theme.of(context).textTheme.titleLarge
-                                  ?.copyWith(
-                                    color: DesignTokens.white,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      ),
+                    const ExerciseScreenTopBar(
+                      title: AppStrings.placementTitle,
                     ),
                     Expanded(
                       child: Padding(
@@ -176,7 +156,7 @@ final class _PlacementScreenState extends State<PlacementScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             SectionHeader(
-                              title: AppStrings.targetLabel,
+                              title: AppStrings.placementDesc,
                               subtitle: _target.displayTurkish,
                               subtitleStyle: Theme.of(context)
                                   .textTheme
@@ -189,47 +169,32 @@ final class _PlacementScreenState extends State<PlacementScreen> {
                                     letterSpacing: -0.5,
                                   ),
                             ),
-                            const SizedBox(height: AppSpacing.md),
+                            const SizedBox(height: AppSpacing.sm),
                             Expanded(
-                              child: SingleChildScrollView(
-                                physics: const BouncingScrollPhysics(),
-                                child: SoftCard(
-                                  padding: AppSpacing.cardPad,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Text(
-                                        AppStrings.tapStaff,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.copyWith(
-                                              color: DesignTokens.slate400,
-                                            ),
-                                      ),
-                                      const SizedBox(height: AppSpacing.md),
-                                      SizedBox(
-                                        height: AppSpacing.staffAreaHeight,
-                                        child: AbsorbPointer(
-                                          absorbing: _feedback,
-                                          child: StaffInteractiveField(
-                                            notes: _previewNotes(),
-                                            highlightSlot: _slot,
-                                            onSlot: (s) {
-                                              if (_slot != s) {
-                                                setState(() => _slot = s);
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                              child: PlacementStaffCard(
+                                expandToFill: true,
+                                pool: widget.pool,
+                                notes: _previewNotes(),
+                                highlightSlot:
+                                    _feedback && !_lastOk ? null : _slot,
+                                wrongHighlightSlot: _feedback &&
+                                        !_lastOk &&
+                                        _slot != null
+                                    ? _slot
+                                    : null,
+                                correctHighlightSlot:
+                                    _feedback && !_lastOk
+                                        ? _target.staffSlot
+                                        : null,
+                                feedback: _feedback,
+                                onSlot: (s) {
+                                  if (_slot != s) {
+                                    setState(() => _slot = s);
+                                  }
+                                },
                               ),
                             ),
-                            const SizedBox(height: AppSpacing.md),
+                            const SizedBox(height: AppSpacing.sm),
                             FilledButton(
                               onPressed: _feedback ? null : _submit,
                               child: Text(AppStrings.confirm),

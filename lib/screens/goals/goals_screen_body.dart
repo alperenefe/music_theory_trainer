@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
 
+import '../../config/goal_kind.dart';
 import '../../l10n/app_strings.dart';
+import '../../models/exercise_goal.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
 import '../../widgets/text/section_header.dart';
-import 'goal_kind_chips.dart';
 import 'goal_midi_range_card.dart';
 import 'goal_sound_switch_card.dart';
-import 'goal_target_slider_card.dart';
+import 'per_activity_goal_tile.dart';
 
 final class GoalsScreenBody extends StatelessWidget {
   const GoalsScreenBody({
     super.key,
     required this.midiChoices,
-    required this.goalKind,
-    required this.onGoalKindChanged,
-    required this.targetCount,
-    required this.onTargetChanged,
+    required this.goalsByKind,
+    required this.onGoalChanged,
     required this.minMidi,
     required this.maxMidi,
     required this.onMinMidiChanged,
@@ -27,10 +26,8 @@ final class GoalsScreenBody extends StatelessWidget {
   });
 
   final List<int> midiChoices;
-  final String? goalKind;
-  final ValueChanged<String?> onGoalKindChanged;
-  final int targetCount;
-  final ValueChanged<int> onTargetChanged;
+  final Map<String, ExerciseGoal> goalsByKind;
+  final void Function(String kind, ExerciseGoal goal) onGoalChanged;
   final int minMidi;
   final int maxMidi;
   final ValueChanged<int> onMinMidiChanged;
@@ -38,6 +35,9 @@ final class GoalsScreenBody extends StatelessWidget {
   final bool soundEnabled;
   final ValueChanged<bool> onSoundChanged;
   final VoidCallback onSave;
+
+  ExerciseGoal _goalFor(String kind) =>
+      goalsByKind[kind] ?? const ExerciseGoal();
 
   @override
   Widget build(BuildContext context) {
@@ -77,13 +77,22 @@ final class GoalsScreenBody extends StatelessWidget {
                 subtitle: AppStrings.goalsDesc,
               ),
               const SizedBox(height: AppSpacing.md),
-              GoalKindChips(goalKind: goalKind, onChanged: onGoalKindChanged),
-              const SizedBox(height: AppSpacing.lg),
-              GoalTargetSliderCard(
-                targetCount: targetCount,
-                onChanged: onTargetChanged,
+              Text(
+                AppStrings.goalPerActivitySection,
+                style: t.titleSmall?.copyWith(
+                  color: DesignTokens.white,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.sm),
+              for (final kind in GoalKind.practiceKinds) ...[
+                PerActivityGoalTile(
+                  kind: kind,
+                  goal: _goalFor(kind),
+                  onChanged: (g) => onGoalChanged(kind, g),
+                ),
+                const SizedBox(height: AppSpacing.md),
+              ],
               GoalMidiRangeCard(
                 midiChoices: midiChoices,
                 minMidi: minMidi,

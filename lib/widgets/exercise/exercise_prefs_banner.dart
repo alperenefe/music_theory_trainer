@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../config/goal_kind.dart';
 import '../../l10n/app_strings.dart';
 import '../../models/practice_prefs.dart';
 import '../../theme/app_spacing.dart';
@@ -16,73 +17,35 @@ final class ExercisePrefsBanner extends StatelessWidget {
   final PracticePrefs prefs;
   final String exercise;
 
-  static String? _goalKindTitle(String? gk) {
-    return switch (gk) {
-      'placement' => AppStrings.placementTitle,
-      'mcq' => AppStrings.mcqTitle,
-      'gitar_mcq' => AppStrings.guitarMcqTitle,
-      'gitar_bul' => AppStrings.guitarFindTitle,
-      'gitar_cal' => AppStrings.guitarPlayTitle,
-      _ => null,
-    };
-  }
-
-  bool _goalMatchesExercise() {
-    final gk = prefs.goalKind;
-    if (gk == null) {
-      return false;
-    }
-    return (gk == 'placement' && exercise == AppStrings.exercisePlacement) ||
-        (gk == 'mcq' && exercise == AppStrings.exerciseMcq) ||
-        (gk == 'gitar_mcq' && exercise == AppStrings.exerciseGuitarMcq) ||
-        (gk == 'gitar_bul' && exercise == AppStrings.exerciseGuitarFind) ||
-        (gk == 'gitar_cal' && exercise == AppStrings.exerciseGuitarPlay);
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
-    final match = _goalMatchesExercise();
-    final gk = prefs.goalKind;
-    final gkTitle = _goalKindTitle(gk);
+    final kind = GoalKind.kindForExercise(exercise);
+    final goal = kind != null ? prefs.goalForKind(kind) : null;
+    final title = kind != null ? GoalKind.title(kind) : null;
+
+    String line;
+    if (goal == null || title == null) {
+      line = '${AppStrings.exercisePrefsGoalLine}: ${AppStrings.goalNone}';
+    } else {
+      line =
+          '${AppStrings.exercisePrefsGoalLine}: '
+          '${goal.progress}/${goal.target} · $title · '
+          '%${goal.accuracyPercent} · ≤${goal.maxAvgLatencyMs}ms';
+    }
+
     return SoftCard(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
         vertical: AppSpacing.md,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (gk == null)
-            Text(
-              '${AppStrings.exercisePrefsGoalLine}: ${AppStrings.goalNone}',
-              style: t.bodySmall?.copyWith(
-                color: DesignTokens.slate400,
-                fontWeight: FontWeight.w600,
-                height: 1.35,
-              ),
-            )
-          else if (match)
-            Text(
-              '${AppStrings.exercisePrefsGoalLine}: '
-              '${prefs.goalProgress}/${prefs.goalTarget} · $gkTitle',
-              style: t.bodySmall?.copyWith(
-                color: DesignTokens.slate300,
-                fontWeight: FontWeight.w600,
-                height: 1.35,
-              ),
-            )
-          else
-            Text(
-              '${AppStrings.exercisePrefsGoalLine}: $gkTitle · '
-              '${AppStrings.exercisePrefsGoalOtherExercise}',
-              style: t.bodySmall?.copyWith(
-                color: DesignTokens.slate400,
-                fontWeight: FontWeight.w600,
-                height: 1.35,
-              ),
-            ),
-        ],
+      child: Text(
+        line,
+        style: t.bodySmall?.copyWith(
+          color: goal == null ? DesignTokens.slate400 : DesignTokens.slate300,
+          fontWeight: FontWeight.w600,
+          height: 1.35,
+        ),
       ),
     );
   }

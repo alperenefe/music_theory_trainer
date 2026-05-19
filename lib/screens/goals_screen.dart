@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../config/goal_kind.dart';
+import '../models/exercise_goal.dart';
 import '../models/notation_pitch.dart';
 import '../models/practice_prefs.dart';
 import '../services/practice_prefs_repository.dart';
@@ -17,8 +19,7 @@ final class GoalsScreen extends StatefulWidget {
 
 final class _GoalsScreenState extends State<GoalsScreen> {
   late Future<PracticePrefs> _load;
-  String? _goalKind;
-  late int _targetCount;
+  late Map<String, ExerciseGoal> _goalsByKind;
   late int _minMidi;
   late int _maxMidi;
   late bool _soundEnabled;
@@ -34,9 +35,11 @@ final class _GoalsScreenState extends State<GoalsScreen> {
 
   Future<PracticePrefs> _read() async {
     final p = await widget.repo.load();
-    _goalKind = p.goalKind;
+    _goalsByKind = Map<String, ExerciseGoal>.from(p.exerciseGoals);
+    for (final kind in GoalKind.practiceKinds) {
+      _goalsByKind.putIfAbsent(kind, () => const ExerciseGoal());
+    }
     _soundEnabled = p.soundEnabled;
-    _targetCount = p.goalTarget.clamp(10, 10000);
     _minMidi = p.poolMinMidi;
     _maxMidi = p.poolMaxMidi;
     final mids =
@@ -85,42 +88,44 @@ final class _GoalsScreenState extends State<GoalsScreen> {
       lo = pool.first.midi;
       hi = pool.last.midi;
     }
-    final gk = _goalKind;
-    final now = DateTime.now().millisecondsSinceEpoch;
     final prev = await widget.repo.load();
-    final targetNew = _targetCount.clamp(10, 10000);
-    final PracticePrefs next;
-    if (gk == null) {
-      next = PracticePrefs(
-        poolMinMidi: lo,
-        poolMaxMidi: hi,
-        goalKind: null,
-        goalTarget: targetNew,
-        goalProgress: 0,
-        goalStartedAtMillis: 0,
-        soundEnabled: _soundEnabled,
-        onboardingDone: prev.onboardingDone,
-        referenceA4Hz: prev.referenceA4Hz,
-      );
-    } else {
-      final reset = prev.goalKind != gk || prev.goalTarget != targetNew;
-      next = PracticePrefs(
-        poolMinMidi: lo,
-        poolMaxMidi: hi,
-        goalKind: gk,
-        goalTarget: targetNew,
-        goalProgress: reset ? 0 : prev.goalProgress,
-        goalStartedAtMillis: reset ? now : prev.goalStartedAtMillis,
-        soundEnabled: _soundEnabled,
-        onboardingDone: prev.onboardingDone,
-        referenceA4Hz: prev.referenceA4Hz,
-      );
+    final savedGoals = <String, ExerciseGoal>{};
+    for (final kind in GoalKind.practiceKinds) {
+      final g = _goalsByKind[kind] ?? const ExerciseGoal();
+      if (!g.enabled) {
+        continue;
+      }
+      final prevG = prev.exerciseGoals[kind];
+      if (prevG != null &&
+          prevG.enabled &&
+          prevG.target == g.target &&
+          prevG.accuracyPercent == g.accuracyPercent &&
+          prevG.maxAvgLatencyMs == g.maxAvgLatencyMs) {
+        savedGoals[kind] = g.copyWith(
+          progress: prevG.progress,
+          startedAtMillis: prevG.startedAtMillis,
+        );
+      } else {
+        savedGoals[kind] = g;
+      }
     }
+    final next = PracticePrefs(
+      poolMinMidi: lo,
+      poolMaxMidi: hi,
+      exerciseGoals: savedGoals,
+      soundEnabled: _soundEnabled,
+      onboardingDone: prev.onboardingDone,
+      referenceA4Hz: prev.referenceA4Hz,
+    );
     await widget.repo.save(next);
     if (!mounted) {
       return;
     }
     Navigator.of(context).pop();
+  }
+
+  void _onGoalChanged(String kind, ExerciseGoal goal) {
+    setState(() => _goalsByKind[kind] = goal);
   }
 
   @override
@@ -141,10 +146,8 @@ final class _GoalsScreenState extends State<GoalsScreen> {
               }
               return GoalsScreenBody(
                 midiChoices: _midiChoices,
-                goalKind: _goalKind,
-                onGoalKindChanged: (v) => setState(() => _goalKind = v),
-                targetCount: _targetCount,
-                onTargetChanged: (v) => setState(() => _targetCount = v),
+                goalsByKind: _goalsByKind,
+                onGoalChanged: _onGoalChanged,
                 minMidi: _minMidi,
                 maxMidi: _maxMidi,
                 onMinMidiChanged: (v) => setState(() => _minMidi = v),

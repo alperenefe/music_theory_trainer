@@ -23,7 +23,7 @@ void main() {
       expect(GuitarNote(string: 5, fret: 0).noteName, 'Mi');
       expect(GuitarNote(string: 4, fret: 0).noteName, 'La');
       expect(GuitarNote(string: 5, fret: 1).noteName, 'Fa');
-      expect(GuitarNote(string: 5, fret: 2).noteName, 'Fa#');
+      expect(GuitarNote(string: 5, fret: 2).noteName, 'Fa diyez');
     });
 
     test('allNotes 0-7 arası 48 nota döner', () {

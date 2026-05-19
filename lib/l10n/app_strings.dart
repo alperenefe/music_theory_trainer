@@ -8,11 +8,19 @@ abstract final class AppStrings {
   static const mcqDesc = 'Portede gösterilen notanın adını seç.';
   static const statsTitle = 'İstatistikler';
   static const statsDesc = 'Son denemeler ve ortalama süre.';
+  static const exerciseStatsTitle = 'İstatistikler';
+  static const exerciseStatsEmpty = 'Henüz bu etkinlikte deneme yok.';
+  static String exerciseStatsWindow(int n) => 'Son $n deneme';
+  static const clearExerciseStats = 'Bu etkinliğin kayıtlarını sil';
+  static const clearExerciseStatsTitle = 'Etkinlik kayıtları silinsin mi?';
+  static const clearExerciseStatsBody =
+      'Yalnızca bu alıştırmaya ait denemeler silinir; diğer etkinlikler kalır.';
   static const start = 'Başla';
   static const confirm = 'Onayla';
   static const next = 'Sonraki';
   static const targetLabel = 'Hedef';
-  static const tapStaff = 'Porteye dokun: çizgi veya aralık seçilir.';
+  static const tapStaff =
+      'Porteye dokun veya parmağını sürükle: çizgi veya aralık seçilir.';
   static const correct = 'Doğru';
   static const wrong = 'Yanlış';
   static const wrongYourPick = 'Seçimin';
@@ -27,16 +35,44 @@ abstract final class AppStrings {
   static const selectSlotFirst = 'Önce portede bir yer seç.';
   static const exercisePlacement = 'yerlestir';
   static const exerciseMcq = 'coktan_secmeli';
+  static const intervalTitle = 'Aralık tanı';
+  static const intervalDesc =
+      'Kök notadan yukarı veya aşağı aralık (küçük/büyük 2–3, tam 4–5) — oktavsız nota adı.';
+  static const exerciseInterval = 'aralik';
+  static const scaleTitle = 'Gam kur';
+  static const scaleDesc =
+      'Tüm notalardan gamı doğru sırayla seç; bitince süre durur, yanlışta yeni gam.';
+  static const exerciseScale = 'gam';
+  static const scaleStepLabel = 'derece';
+  static const scaleTimerLabel = 'Süre';
+  static const scalePickedSoFar = 'Seçilenler';
+  static const scaleTime = 'Süre';
+  static const chordTitle = 'Akor tanı / kur';
+  static const chordDesc =
+      'Akor adından notaları veya notalardan akor adını bul.';
+  static const exerciseChord = 'akor';
+  static const questionLabel = 'Soru';
+  static const goalProgressAttempts = 'Deneme sayısı';
+  static const goalProgressAccuracy = 'Doğruluk';
+  static const goalProgressSpeed = 'Hız (ort. süre)';
+  static const goalAccuracyTargetSection = 'Doğruluk hedefi';
+  static const goalSpeedTargetSection = 'Süre hedefi (ortalama)';
+  static const goalSpeedTargetHint =
+      'Bu sürenin altında ortalama kalırsan hız hedefi tutar.';
   static const exercisePrefsGoalLine = 'Hedef';
   static const exercisePrefsGoalOtherExercise =
       'Seçili hedef başka bir alıştırmada.';
   static const goalsTitle = 'Hedef ve aralık';
-  static const goalsDesc = 'Kalıcı hedef ve nota aralığını buradan ayarla.';
+  static const goalsDesc =
+      'Her etkinlik için ayrı hedef; ana ekranda kartların altında ilerleme görünür.';
+  static const goalPerActivitySection = 'Etkinlik hedefleri';
+  static const goalEnabledHint = 'Hedef açık';
+  static const goalDisabledHint = 'Hedef kapalı — ana ekranda progress yok';
   static const goalKindSection = 'Aktif hedef türü';
   static const goalTargetSection = 'Hedef adedi';
   static const goalRangeSection = 'Nota aralığı';
-  static const goalMinMidi = 'En düşük nota (MIDI)';
-  static const goalMaxMidi = 'En yüksek nota (MIDI)';
+  static const goalMinMidi = 'En düşük nota';
+  static const goalMaxMidi = 'En yüksek nota';
   static const goalSave = 'Kaydet';
   static const goalNone = 'Hedef yok';
   static const goalActive = 'Aktif hedef';
@@ -57,7 +93,8 @@ abstract final class AppStrings {
   static const exerciseGuitarMcq = 'gitar_mcq';
   static const exerciseGuitarFind = 'gitar_bul';
   static const guitarTapHint = 'Fretboard üzerinde bir perde seç.';
-  static const guitarAllCorrectShown = 'Tüm doğru perdeler işaretlendi';
+  static const guitarAllCorrectShown =
+      'Yanlış seçim. Tüm doğru perdeler yeşil ile gösterildi.';
 
   static const guitarPlayTitle = 'Gitarda notayı çal';
   static const guitarPlayDesc =
@@ -70,9 +107,26 @@ abstract final class AppStrings {
   static const guitarPlayStart = 'Dinlemeyi başlat';
   static const guitarPlayStop = 'Dinlemeyi durdur';
   static const guitarPlayDenied = 'Mikrofon izni gerekli.';
+  static const micPermissionRationale =
+      'Akort ve “notayı çal” için mikrofon yalnızca cihazında işlenir; kayıt sunucuya gönderilmez.';
+  static const clearStatsConfirmTitle = 'İstatistikleri sıfırla?';
+  static const clearStatsConfirmBody =
+      'Tüm deneme geçmişi silinir. Bu işlem geri alınamaz.';
+  static const clearStatsConfirmOk = 'Sıfırla';
+  static const cancel = 'İptal';
+  static const guitarRangeHint =
+      'Gitar modları, Hedef ekranındaki nota aralığına göre filtrelenir.';
+  static const goalRangeStaffNote =
+      'Porte alıştırmaları sabit aralıkta (kalın Mi2–1. tel Si4, gitar yazımı). Bu ayar yalnızca gitar modlarını etkiler.';
+  static const guitarRangeEmptyTitle = 'Bu aralıkta perde yok';
+  static const guitarRangeEmptyBody =
+      'Hedef ekranından nota aralığını genişlet veya kaydet. Gitar modları bu aralığa göre filtrelenir.';
+  static const guitarRangeEmptyBack = 'Ana menüye dön';
   static const guitarPlayDetected = 'Algılanan';
   static const guitarPlayPreview = 'Hedef sesini dinle';
-  static const guitarPlayChangeTarget = 'Başka nota seç';
+  static const guitarPlayChangeTarget = 'Nota seç';
+  static const guitarPlayPickNoteTitle = 'Çalacağın notayı seç';
+  static const guitarPlayInTuneHint = 'İbre ortada — hedefe yakınsın';
 
   static const tunerTitle = 'Akort';
   static const tunerDesc =
@@ -100,10 +154,20 @@ abstract final class AppStrings {
       'Portede yerleştir, çoktan seçmeli, gitar ve mikrofon egzersizleriyle doğal notaları pekiştir.';
   static const ob2Title = 'Hedef ve aralık';
   static const ob2Body =
-      'Hedef ekranından deneme sayısı ve MIDI aralığını ayarla; ilerleme kayıtlı kalır.';
+      'Hedef ekranından deneme sayısı ve nota aralığını ayarla; ilerleme kayıtlı kalır.';
   static const ob3Title = 'Ses ve pratik';
   static const ob3Body =
       'Ana ekrandan sesi açıp kapatabilirsin. Geri bildirimde kısa titreşim ve ton kullanılır.';
   static const obNext = 'İleri';
   static const obStart = 'Başla';
+
+  static const statsFilterAll = 'Tümü';
+  static const statsFilterPlacement = 'Yerleştir';
+  static const statsFilterMcq = 'Tanı';
+  static const statsFilterGuitarMcq = 'Gitar tanı';
+  static const statsFilterGuitarFind = 'Gitar bul';
+  static const statsFilterGuitarPlay = 'Gitar çal';
+  static const statsFilterInterval = 'Aralık';
+  static const statsFilterScale = 'Gam';
+  static const statsFilterChord = 'Akor';
 }

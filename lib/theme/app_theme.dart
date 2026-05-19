@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'design_tokens.dart';
 
@@ -62,7 +61,7 @@ final class AppTheme {
       scaffoldBackgroundColor: DesignTokens.slate950,
       pageTransitionsTheme: _pageTransitions,
     );
-    final inter = GoogleFonts.interTextTheme(base.textTheme);
+    final inter = base.textTheme;
     final textTheme = inter.copyWith(
       displaySmall: inter.displaySmall?.copyWith(
         letterSpacing: -0.6,

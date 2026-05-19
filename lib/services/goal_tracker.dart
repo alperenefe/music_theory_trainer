@@ -1,4 +1,4 @@
-import '../l10n/app_strings.dart';
+import '../config/goal_kind.dart';
 import '../models/practice_attempt.dart';
 import '../services/practice_prefs_repository.dart';
 import '../services/stats_repository.dart';
@@ -31,18 +31,21 @@ final class GoalTracker {
     required PracticePrefsRepository prefsRepo,
   }) async {
     final prefs = await prefsRepo.load();
-    final gk = prefs.goalKind;
-    if (gk == null) {
+    final kind = GoalKind.kindForExercise(exercise);
+    if (kind == null) {
       return null;
     }
-    if (!_matches(gk, exercise)) {
+    final goal = prefs.goalForKind(kind);
+    if (goal == null) {
       return null;
     }
-    final started = prefs.goalStartedAtMillis;
-    final target = prefs.goalTarget.clamp(1, 999999);
-    final next = prefs.goalProgress + 1;
-    if (next < target) {
-      await prefsRepo.save(prefs.copyWith(goalProgress: next));
+    final started = goal.startedAtMillis;
+    final target = goal.target.clamp(1, 999999);
+    final nextProgress = goal.progress + 1;
+    if (nextProgress < target) {
+      await prefsRepo.save(
+        prefs.withGoal(kind, goal.copyWith(progress: nextProgress)),
+      );
       return null;
     }
     final rows = await statsRepo.load();
@@ -62,7 +65,7 @@ final class GoalTracker {
     }
     final summary = summarizeAttempts(window);
     final report = GoalCompletionReport(
-      goalTitle: _kindTitle(gk),
+      goalTitle: GoalKind.titleWithFallback(kind),
       target: target,
       summary: summary,
       bestStreak: _bestStreak(window),
@@ -72,29 +75,12 @@ final class GoalTracker {
     );
     final now = DateTime.now().millisecondsSinceEpoch;
     await prefsRepo.save(
-      prefs.copyWith(goalProgress: 0, goalStartedAtMillis: now),
+      prefs.withGoal(
+        kind,
+        goal.copyWith(progress: 0, startedAtMillis: now),
+      ),
     );
     return report;
-  }
-
-  static bool _matches(String goalKind, String exercise) {
-    return (goalKind == 'placement' &&
-            exercise == AppStrings.exercisePlacement) ||
-        (goalKind == 'mcq' && exercise == AppStrings.exerciseMcq) ||
-        (goalKind == 'gitar_mcq' && exercise == AppStrings.exerciseGuitarMcq) ||
-        (goalKind == 'gitar_bul' && exercise == AppStrings.exerciseGuitarFind) ||
-        (goalKind == 'gitar_cal' && exercise == AppStrings.exerciseGuitarPlay);
-  }
-
-  static String _kindTitle(String goalKind) {
-    return switch (goalKind) {
-      'placement' => AppStrings.placementTitle,
-      'mcq' => AppStrings.mcqTitle,
-      'gitar_mcq' => AppStrings.guitarMcqTitle,
-      'gitar_bul' => AppStrings.guitarFindTitle,
-      'gitar_cal' => AppStrings.guitarPlayTitle,
-      _ => AppStrings.goalsTitle,
-    };
   }
 
   static int _bestStreak(List<PracticeAttempt> rows) {

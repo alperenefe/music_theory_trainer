@@ -6,6 +6,8 @@ import '../guitar/fretboard_painter.dart';
 import '../guitar/fretboard_widget.dart';
 import '../l10n/app_strings.dart';
 import '../models/guitar_note.dart';
+import '../models/practice_prefs.dart';
+import '../utils/guitar_note_pool.dart';
 import '../models/practice_attempt.dart';
 import '../services/goal_tracker.dart';
 import '../services/guitar_audio_service.dart';
@@ -16,11 +18,19 @@ import '../theme/design_tokens.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
 import '../widgets/cards/soft_card.dart';
 import '../widgets/exercise/feedback_bottom_bar.dart';
+import '../widgets/guitar/guitar_range_empty_body.dart';
 import '../widgets/text/section_header.dart';
 import 'goal_completion_screen.dart';
 
 final class FretMcqScreen extends StatefulWidget {
-  const FretMcqScreen({super.key});
+  const FretMcqScreen({
+    super.key,
+    this.poolMinMidi = PracticePrefs.defaultPoolMinMidi,
+    this.poolMaxMidi = PracticePrefs.defaultPoolMaxMidi,
+  });
+
+  final int poolMinMidi;
+  final int poolMaxMidi;
 
   @override
   State<FretMcqScreen> createState() => _FretMcqScreenState();
@@ -31,7 +41,10 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
   final _repo = StatsRepository();
   final _prefsRepo = PracticePrefsRepository();
   final _audio = GuitarAudioService.instance;
-  final _allNotes = GuitarNote.allNotes();
+  late final List<GuitarNote> _allNotes = GuitarNotePool.forMidiRange(
+    minMidi: widget.poolMinMidi,
+    maxMidi: widget.poolMaxMidi,
+  );
 
   late GuitarNote _target;
   late List<String> _opts;
@@ -49,6 +62,9 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
   }
 
   void _newRound() {
+    if (_allNotes.isEmpty) {
+      return;
+    }
     setState(() {
       _target = _allNotes[_rnd.nextInt(_allNotes.length)];
       _t0 = DateTime.now().millisecondsSinceEpoch;
@@ -112,6 +128,11 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_allNotes.isEmpty) {
+      return const Scaffold(
+        body: GuitarRangeEmptyBody(),
+      );
+    }
     final t = Theme.of(context).textTheme;
     return Scaffold(
       body: Column(

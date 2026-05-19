@@ -1,12 +1,11 @@
-import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_detect_pitch/flutter_detect_pitch.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../l10n/app_strings.dart';
 import '../models/guitar_note.dart';
+import '../models/notation_pitch.dart';
 import '../models/practice_attempt.dart';
 import '../models/practice_prefs.dart';
 import '../services/goal_tracker.dart';
@@ -15,17 +14,27 @@ import '../services/practice_prefs_repository.dart';
 import '../services/stats_repository.dart';
 import '../theme/app_spacing.dart';
 import '../theme/design_tokens.dart';
+import '../utils/guitar_note_pool.dart';
+import '../utils/guitar_target_pitch_match.dart';
 import '../utils/mic_energy_gate.dart';
+import '../utils/mic_pitch_session.dart';
 import '../utils/microphone_pitch_smoother.dart';
-import '../utils/pitch_from_hz.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
-import '../widgets/cards/soft_card.dart';
 import '../widgets/exercise/feedback_bottom_bar.dart';
+import '../widgets/guitar/fret_play_listening_card.dart';
+import '../widgets/guitar/guitar_range_empty_body.dart';
 import '../widgets/text/section_header.dart';
 import 'goal_completion_screen.dart';
 
 final class FretPlayNoteScreen extends StatefulWidget {
-  const FretPlayNoteScreen({super.key});
+  const FretPlayNoteScreen({
+    super.key,
+    this.poolMinMidi = PracticePrefs.defaultPoolMinMidi,
+    this.poolMaxMidi = PracticePrefs.defaultPoolMaxMidi,
+  });
+
+  final int poolMinMidi;
+  final int poolMaxMidi;
 
   @override
   State<FretPlayNoteScreen> createState() => _FretPlayNoteScreenState();
@@ -36,23 +45,25 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
   final _repo = StatsRepository();
   final _prefsRepo = PracticePrefsRepository();
   final _audio = GuitarAudioService.instance;
+  final _mic = MicPitchSession();
   late List<GuitarNote> _allNotes;
-  late List<String> _uniqueNames;
 
-  late String _targetName;
+  late GuitarNote _targetNote;
+  late String _targetLabel;
   var _t0 = 0;
   var _feedback = false;
   var _lastOk = false;
-  StreamSubscription<PitchFrame>? _pitchSub;
   var _listening = false;
   double? _lastHz;
   String? _lastNoteName;
-  final _stable = <String>[];
+  double? _cents;
+  final _stable = <int>[];
   static const int _stableNeed = 4;
+  static const double _inTuneCents = 35;
   var _quietStreak = 0;
   final _hzSmoother = PitchReadingSmoother(
-    alpha: 0.1,
-    maxJumpCents: 300,
+    alpha: 0.12,
+    maxJumpCents: 180,
     invalidStreakToReset: 10,
   );
   var _refA4 = PracticePrefs.defaultReferenceA4Hz;
@@ -60,8 +71,18 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
   @override
   void initState() {
     super.initState();
-    _allNotes = GuitarNote.allNotes();
-    _uniqueNames = _allNotes.map((e) => e.noteName).toSet().toList()..sort();
+    _mic.attach();
+    _mic.onStopped = () {
+      if (mounted && _listening) {
+        setState(() => _listening = false);
+      } else {
+        _listening = false;
+      }
+    };
+    _allNotes = GuitarNotePool.forMidiRange(
+      minMidi: widget.poolMinMidi,
+      maxMidi: widget.poolMaxMidi,
+    );
     _newRound();
     _loadPrefsRef();
   }
@@ -79,28 +100,37 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
 
   @override
   void dispose() {
-    _stopMic();
+    _mic.detach();
     super.dispose();
+  }
+
+  void _assignTarget(GuitarNote note) {
+    _targetNote = note;
+    _targetLabel = NotationPitch.buildDisplayLabel(note.midi);
+    _hzSmoother.reset();
+    _stable.clear();
   }
 
   void _newRound() {
     _stopMic();
+    if (_allNotes.isEmpty) {
+      return;
+    }
     setState(() {
-      _targetName = _uniqueNames[_rnd.nextInt(_uniqueNames.length)];
+      _assignTarget(_allNotes[_rnd.nextInt(_allNotes.length)]);
       _t0 = DateTime.now().millisecondsSinceEpoch;
       _feedback = false;
       _lastOk = false;
       _lastHz = null;
       _lastNoteName = null;
-      _stable.clear();
+      _cents = null;
       _quietStreak = 0;
     });
     _loadPrefsRef();
   }
 
   void _stopMic() {
-    _pitchSub?.cancel();
-    _pitchSub = null;
+    _mic.stop();
     _quietStreak = 0;
     _hzSmoother.reset();
     if (_listening && mounted) {
@@ -110,25 +140,36 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
     }
   }
 
-  Future<void> _tryStartMic() async {
-    if (_feedback || _listening) {
-      return;
-    }
-    final st = await Permission.microphone.request();
+  Future<void> _showMicRationale() async {
     if (!mounted) {
       return;
     }
-    if (!st.isGranted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.guitarPlayDenied)),
-      );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppStrings.micPermissionRationale)),
+    );
+  }
+
+  Future<void> _tryStartMic() async {
+    if (_feedback || _listening) {
       return;
     }
     _quietStreak = 0;
     _hzSmoother.reset();
     _stable.clear();
-    _pitchSub = IosPitchDetector.pitchStream.listen(_onPitchSample);
-    setState(() => _listening = true);
+    final ok = await _mic.start(
+      onFrame: _onPitchSample,
+      onShowRationale: _showMicRationale,
+      onPermissionDenied: () async {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppStrings.guitarPlayDenied)),
+          );
+        }
+      },
+    );
+    if (mounted && ok) {
+      setState(() => _listening = true);
+    }
   }
 
   void _toggleMic() {
@@ -142,21 +183,78 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
     }
   }
 
-  void _pickOtherTarget() {
+  Future<void> _pickTargetNote() async {
     if (_feedback) {
       return;
     }
-    final others = _uniqueNames.where((n) => n != _targetName).toList();
-    if (others.isEmpty) {
+    final sorted = List<GuitarNote>.from(_allNotes)
+      ..sort((a, b) => a.midi.compareTo(b.midi));
+    final picked = await showModalBottomSheet<GuitarNote>(
+      context: context,
+      backgroundColor: DesignTokens.slate900,
+      showDragHandle: true,
+      builder: (ctx) {
+        final t = Theme.of(ctx).textTheme;
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: AppSpacing.screenH,
+                child: Text(
+                  AppStrings.guitarPlayPickNoteTitle,
+                  style: t.titleMedium?.copyWith(
+                    color: DesignTokens.white,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: sorted.length,
+                  itemBuilder: (context, i) {
+                    final n = sorted[i];
+                    final label = NotationPitch.buildDisplayLabel(n.midi);
+                    final selected = n.midi == _targetNote.midi;
+                    return ListTile(
+                      selected: selected,
+                      title: Text(
+                        label,
+                        style: t.titleMedium?.copyWith(
+                          color: DesignTokens.white,
+                          fontWeight:
+                              selected ? FontWeight.w800 : FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: Text(
+                        '${n.stringLabel} teli · ${n.fret}. perde',
+                        style: t.bodySmall?.copyWith(
+                          color: DesignTokens.slate400,
+                        ),
+                      ),
+                      onTap: () => Navigator.pop(ctx, n),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (!mounted || picked == null) {
       return;
     }
-    _stable.clear();
-    _quietStreak = 0;
     setState(() {
-      _targetName = others[_rnd.nextInt(others.length)];
+      _assignTarget(picked);
       _t0 = DateTime.now().millisecondsSinceEpoch;
       _lastHz = null;
       _lastNoteName = null;
+      _cents = null;
+      _quietStreak = 0;
     });
   }
 
@@ -170,6 +268,7 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
         setState(() {
           _lastHz = null;
           _lastNoteName = null;
+          _cents = null;
         });
         _stable.clear();
       }
@@ -180,37 +279,58 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
     if (!hz.isFinite) {
       return;
     }
-    final nested = PitchFromHz.octaveNestForGuitar(hz);
-    final smoothed = _hzSmoother.push(nested);
+    final folded = GuitarTargetPitchMatch.foldToFundamental(
+      hz: hz,
+      targetMidi: _targetNote.midi,
+      referenceA4: _refA4,
+    );
+    final smoothed = _hzSmoother.push(folded);
     if (smoothed == null) {
       setState(() {
         _lastHz = null;
         _lastNoteName = null;
+        _cents = null;
       });
       _stable.clear();
       return;
     }
-    final midi = PitchFromHz.midiFromHz(smoothed, referenceA4: _refA4);
-    if (midi == null) {
+    final matched = GuitarTargetPitchMatch.matchMidi(
+      hz: smoothed,
+      targetMidi: _targetNote.midi,
+      referenceA4: _refA4,
+    );
+    final cents = GuitarTargetPitchMatch.centsToTargetMidi(
+      hz: smoothed,
+      targetMidi: _targetNote.midi,
+      referenceA4: _refA4,
+    );
+    if (matched == null || cents == null) {
       setState(() {
         _lastHz = null;
         _lastNoteName = null;
+        _cents = null;
       });
       _stable.clear();
       return;
     }
-    final name = GuitarNote.noteNameForMidi(midi);
-    _stable.add(name);
+    final name = GuitarNote.noteNameForMidi(matched);
+    final onTarget =
+        matched == _targetNote.midi && cents.abs() <= _inTuneCents;
+    if (onTarget) {
+      _stable.add(matched);
+    } else {
+      _stable.clear();
+    }
     while (_stable.length > _stableNeed) {
       _stable.removeAt(0);
     }
     setState(() {
       _lastHz = smoothed;
       _lastNoteName = name;
+      _cents = cents;
     });
-    if (_stable.length == _stableNeed &&
-        _stable.every((e) => e == _targetName)) {
-      _completeCorrect(midi);
+    if (_stable.length == _stableNeed) {
+      _completeCorrect(_targetNote.midi);
     }
   }
 
@@ -255,19 +375,16 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
   }
 
   Future<void> _previewTarget() async {
-    final midis = _allNotes
-        .where((n) => n.noteName == _targetName)
-        .map((n) => n.midi)
-        .toList();
-    if (midis.isEmpty) {
-      return;
-    }
-    midis.sort();
-    await _audio.playMidi(midis[midis.length ~/ 2]);
+    await _audio.playMidi(_targetNote.midi);
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_allNotes.isEmpty) {
+      return const Scaffold(
+        body: GuitarRangeEmptyBody(),
+      );
+    }
     final t = Theme.of(context).textTheme;
     return Scaffold(
       body: Column(
@@ -322,7 +439,7 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
                         children: [
                           SectionHeader(
                             title: AppStrings.targetLabel,
-                            subtitle: _targetName,
+                            subtitle: _targetLabel,
                             subtitleStyle: t.displaySmall?.copyWith(
                               color: DesignTokens.white,
                               fontWeight: FontWeight.w800,
@@ -350,9 +467,10 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
                                 ),
                               ),
                               TextButton.icon(
-                                onPressed: _feedback ? null : _pickOtherTarget,
+                                onPressed:
+                                    _feedback ? null : _pickTargetNote,
                                 icon: Icon(
-                                  Icons.swap_horiz_rounded,
+                                  Icons.piano_rounded,
                                   color: DesignTokens.blue500,
                                 ),
                                 label: Text(
@@ -366,63 +484,14 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
                             ],
                           ),
                           const SizedBox(height: AppSpacing.md),
-                          SoftCard(
-                            padding: AppSpacing.cardPad,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Text(
-                                  AppStrings.guitarPlayMicHint,
-                                  style: t.bodySmall?.copyWith(
-                                    color: DesignTokens.slate400,
-                                  ),
-                                ),
-                                const SizedBox(height: AppSpacing.lg),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        _listening
-                                            ? AppStrings.tunerMicActive
-                                            : AppStrings.guitarPlayIdle,
-                                        style: t.titleSmall?.copyWith(
-                                          color: _listening
-                                              ? DesignTokens.green400
-                                              : DesignTokens.slate300,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: AppSpacing.md),
-                                Text(
-                                  _lastNoteName != null && _lastHz != null
-                                      ? '${AppStrings.guitarPlayDetected}: '
-                                            '$_lastNoteName · '
-                                            '${_lastHz!.toStringAsFixed(0)} Hz'
-                                      : '—',
-                                  style: t.headlineSmall?.copyWith(
-                                    color: DesignTokens.white,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                const SizedBox(height: AppSpacing.lg),
-                                FilledButton.tonalIcon(
-                                  onPressed: _feedback ? null : _toggleMic,
-                                  icon: Icon(
-                                    _listening
-                                        ? Icons.stop_rounded
-                                        : Icons.mic_rounded,
-                                  ),
-                                  label: Text(
-                                    _listening
-                                        ? AppStrings.guitarPlayStop
-                                        : AppStrings.tunerMicResume,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          FretPlayListeningCard(
+                            textTheme: t,
+                            listening: _listening,
+                            feedback: _feedback,
+                            lastNoteName: _lastNoteName,
+                            lastHz: _lastHz,
+                            cents: _cents,
+                            onToggleMic: _toggleMic,
                           ),
                         ],
                       ),

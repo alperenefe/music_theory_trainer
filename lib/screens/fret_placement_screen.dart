@@ -6,6 +6,9 @@ import '../guitar/fretboard_painter.dart';
 import '../guitar/fretboard_widget.dart';
 import '../l10n/app_strings.dart';
 import '../models/guitar_note.dart';
+import '../models/notation_pitch.dart';
+import '../models/practice_prefs.dart';
+import '../utils/guitar_note_pool.dart';
 import '../models/practice_attempt.dart';
 import '../services/goal_tracker.dart';
 import '../services/guitar_audio_service.dart';
@@ -16,11 +19,19 @@ import '../theme/design_tokens.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
 import '../widgets/cards/soft_card.dart';
 import '../widgets/exercise/feedback_bottom_bar.dart';
+import '../widgets/guitar/guitar_range_empty_body.dart';
 import '../widgets/text/section_header.dart';
 import 'goal_completion_screen.dart';
 
 final class FretPlacementScreen extends StatefulWidget {
-  const FretPlacementScreen({super.key});
+  const FretPlacementScreen({
+    super.key,
+    this.poolMinMidi = PracticePrefs.defaultPoolMinMidi,
+    this.poolMaxMidi = PracticePrefs.defaultPoolMaxMidi,
+  });
+
+  final int poolMinMidi;
+  final int poolMaxMidi;
 
   @override
   State<FretPlacementScreen> createState() => _FretPlacementScreenState();
@@ -35,6 +46,7 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
   late List<String> _uniqueNames;
 
   late String _targetName;
+  late String _targetLabel;
   late List<GuitarNote> _correctCells;
   GuitarNote? _selected;
   var _t0 = 0;
@@ -45,21 +57,25 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
   @override
   void initState() {
     super.initState();
-    _allNotes = GuitarNote.allNotes();
-    _uniqueNames = _allNotes.map((e) => e.noteName).toSet().toList()..sort();
+    _allNotes = GuitarNotePool.forMidiRange(
+      minMidi: widget.poolMinMidi,
+      maxMidi: widget.poolMaxMidi,
+    );
+    _uniqueNames = GuitarNotePool.uniqueNoteNames(_allNotes);
     _newRound();
   }
 
   void _newRound() {
+    if (_uniqueNames.isEmpty) {
+      return;
+    }
     setState(() {
       _targetName = _uniqueNames[_rnd.nextInt(_uniqueNames.length)];
-      _correctCells = GuitarNote.notesWithMidi(
-        _allNotes.firstWhere((n) => n.noteName == _targetName).midi,
-      );
-      // Collect ALL cells across all strings that have this note name
       _correctCells = _allNotes
           .where((n) => n.noteName == _targetName)
           .toList();
+      final mid = _correctCells.first.midi;
+      _targetLabel = NotationPitch.buildDisplayLabel(mid);
       _selected = null;
       _t0 = DateTime.now().millisecondsSinceEpoch;
       _feedback = false;
@@ -76,11 +92,16 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
       }
       return map;
     }
-    // feedback: show correct cells + selected (correct/incorrect)
+    if (_lastOk) {
+      if (_selected != null) {
+        map[_selected!] = const FretboardCellState(correct: true);
+      }
+      return map;
+    }
     for (final c in _correctCells) {
       map[c] = const FretboardCellState(correct: true);
     }
-    if (_selected != null && !_lastOk) {
+    if (_selected != null) {
       map[_selected!] = const FretboardCellState(incorrect: true);
     }
     return map;
@@ -107,7 +128,7 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
       _selected = note;
       _lastOk = ok;
       _feedback = true;
-      _revealAll = true;
+      _revealAll = !ok;
     });
     final done = await GoalTracker.onAttemptRecorded(
       exercise: AppStrings.exerciseGuitarFind,
@@ -127,6 +148,11 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_allNotes.isEmpty) {
+      return const Scaffold(
+        body: GuitarRangeEmptyBody(),
+      );
+    }
     final t = Theme.of(context).textTheme;
     return Scaffold(
       body: Column(
@@ -167,7 +193,7 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
                         children: [
                           SectionHeader(
                             title: AppStrings.targetLabel,
-                            subtitle: _targetName,
+                            subtitle: _targetLabel,
                             subtitleStyle: t.displaySmall?.copyWith(
                               color: DesignTokens.white,
                               fontWeight: FontWeight.w800,
@@ -197,7 +223,7 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
                               ],
                             ),
                           ),
-                          if (_feedback && _revealAll) ...[
+                          if (_feedback && !_lastOk && _revealAll) ...[
                             const SizedBox(height: AppSpacing.md),
                             SoftCard(
                               padding: AppSpacing.cardPadDense,

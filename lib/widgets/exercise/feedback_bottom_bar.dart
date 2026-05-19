@@ -15,6 +15,7 @@ final class FeedbackBottomBar extends StatefulWidget {
     required this.onNext,
     this.wrongYourAnswer,
     this.wrongCorrectAnswer,
+    this.successDetail,
   });
 
   final bool show;
@@ -22,6 +23,7 @@ final class FeedbackBottomBar extends StatefulWidget {
   final VoidCallback onNext;
   final String? wrongYourAnswer;
   final String? wrongCorrectAnswer;
+  final String? successDetail;
 
   @override
   State<FeedbackBottomBar> createState() => _FeedbackBottomBarState();
@@ -75,6 +77,19 @@ final class _FeedbackBottomBarState extends State<FeedbackBottomBar> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 ResultPill(correct: widget.correct, visible: true),
+                if (widget.correct &&
+                    widget.successDetail != null &&
+                    widget.successDetail!.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    widget.successDetail!,
+                    textAlign: TextAlign.center,
+                    style: t.bodyMedium?.copyWith(
+                      color: DesignTokens.slate300,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
                 if (!widget.correct &&
                     (widget.wrongYourAnswer != null ||
                         widget.wrongCorrectAnswer != null)) ...[
