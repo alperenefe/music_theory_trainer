@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/guitar_note.dart';
@@ -18,6 +19,50 @@ final class FretboardWidget extends StatefulWidget {
   final int minFret;
   final int maxFret;
   final double height;
+
+  /// Dokunma → tel/perde (CustomPaint ile aynı geometri).
+  @visibleForTesting
+  static GuitarNote? hitTestAt(
+    Offset pos,
+    Size size, {
+    int minFret = 0,
+    int maxFret = 7,
+  }) {
+    const openLeft = FretboardPainter.openStringLeft;
+    const openW = FretboardPainter.nutX;
+    const rightPad = FretboardPainter.fingerboardRightPad;
+    const topPad = FretboardPainter.boardTopPad;
+    const botPad = FretboardPainter.boardBottomPad;
+    final endX = size.width - rightPad;
+    final sh = (size.height - topPad - botPad) / 5;
+
+    if (pos.dx < openLeft - 8 || pos.dx > endX + 2) return null;
+
+    int fret;
+    if (minFret == 0 && pos.dx < openW) {
+      fret = 0;
+    } else if (minFret == 0) {
+      final fw = (endX - openW) / (maxFret - minFret);
+      final seg = ((pos.dx - openW) / fw).floor();
+      fret = (1 + seg).clamp(1, maxFret);
+    } else {
+      final fw = (endX - openW) / (maxFret - minFret + 1);
+      fret = ((pos.dx - openW) / fw).floor() + minFret;
+    }
+
+    final string = ((pos.dy - topPad + sh / 2) / sh).floor();
+
+    if (fret < minFret || fret > maxFret) return null;
+    if (string < 0 || string > 5) return null;
+    return GuitarNote(string: string, fret: fret);
+  }
+
+  /// Painter merkezine dokunma noktası (regresyon testleri).
+  @visibleForTesting
+  static Offset cellCenterFor(GuitarNote note, Size size) {
+    final painter = FretboardPainter(cellStates: const {}, maxFret: 7);
+    return painter.cellCenter(size, note);
+  }
 
   @override
   State<FretboardWidget> createState() => _FretboardWidgetState();
@@ -83,7 +128,12 @@ final class _FretboardWidgetState extends State<FretboardWidget>
             return GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTapDown: (d) {
-                final note = _hitTest(d.localPosition, constraints.biggest);
+                final note = FretboardWidget.hitTestAt(
+                  d.localPosition,
+                  constraints.biggest,
+                  minFret: widget.minFret,
+                  maxFret: widget.maxFret,
+                );
                 if (note != null) {
                   widget.onCellTap(note);
                 }
@@ -107,35 +157,5 @@ final class _FretboardWidgetState extends State<FretboardWidget>
         ),
       ),
     );
-  }
-
-  GuitarNote? _hitTest(Offset pos, Size size) {
-    const openLeft = FretboardPainter.openStringLeft;
-    const openW = FretboardPainter.nutX;
-    const rightPad = FretboardPainter.fingerboardRightPad;
-    const topPad = FretboardPainter.boardTopPad;
-    const botPad = FretboardPainter.boardBottomPad;
-    final endX = size.width - rightPad;
-    final sh = (size.height - topPad - botPad) / 5;
-
-    if (pos.dx < openLeft - 8 || pos.dx > endX + 2) return null;
-
-    int fret;
-    if (widget.minFret == 0 && pos.dx < openW) {
-      fret = 0;
-    } else if (widget.minFret == 0) {
-      final fw = (endX - openW) / (widget.maxFret - widget.minFret);
-      final seg = ((pos.dx - openW) / fw).floor();
-      fret = (1 + seg).clamp(1, widget.maxFret);
-    } else {
-      final fw = (endX - openW) / (widget.maxFret - widget.minFret + 1);
-      fret = ((pos.dx - openW) / fw).floor() + widget.minFret;
-    }
-
-    final string = ((pos.dy - topPad + sh / 2) / sh).floor();
-
-    if (fret < widget.minFret || fret > widget.maxFret) return null;
-    if (string < 0 || string > 5) return null;
-    return GuitarNote(string: string, fret: fret);
   }
 }

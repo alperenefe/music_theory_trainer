@@ -13,28 +13,19 @@ final class GuitarNote {
   static const _openName = ['Mi', 'Si', 'Sol', 'Re', 'La', 'Mi'];
   static const _stringLabel = ['e', 'B', 'G', 'D', 'A', 'E'];
 
-  static const _chromaticTr = [
-    'Do',
-    'Do diyez',
-    'Re',
-    'Re diyez',
-    'Mi',
-    'Fa',
-    'Fa diyez',
-    'Sol',
-    'Sol diyez',
-    'La',
-    'La diyez',
-    'Si',
-  ];
-
   int get midi => _openMidi[string] + fret;
 
-  String get noteName => _chromaticTr[midi % 12];
+  int get pitchClass => midi % 12;
+
+  String get noteName =>
+      TheoryNoteLabels.label(midi, withOctave: false);
 
   String get stringLabel => _stringLabel[string];
 
   String get openStringName => _openName[string];
+
+  /// Örn. «Sol teli · 2. perde» (tel adı = boş teldeki nota).
+  String get positionLabel => '$openStringName teli · $fret. perde';
 
   double get frequency => 440.0 * pow(2.0, (midi - 69) / 12.0);
 
@@ -62,6 +53,18 @@ final class GuitarNote {
     ).where((n) => n.midi == midi).toList();
   }
 
+  static List<String> mcqOptionsForMidi(
+    int correctMidi,
+    List<GuitarNote> pool,
+    Random rnd,
+  ) {
+    return mcqOptions(
+      TheoryNoteLabels.label(correctMidi, withOctave: false),
+      pool,
+      rnd,
+    );
+  }
+
   static List<String> mcqOptions(
     String correct,
     List<GuitarNote> pool,
@@ -75,17 +78,19 @@ final class GuitarNote {
       if (opts.length >= 4) break;
       opts.add(c);
     }
-    while (opts.length < 4 && opts.length < _chromaticTr.length) {
-      for (final n in _chromaticTr) {
-        if (!opts.contains(n)) {
-          opts.add(n);
-          break;
-        }
+    const fallback = TheoryNoteLabels.chromaticPalette;
+    var fi = 0;
+    while (opts.length < 4 && fi < fallback.length) {
+      final n = fallback[fi++];
+      if (!opts.contains(n)) {
+        opts.add(n);
       }
     }
     final list = opts.toList()..shuffle(rnd);
     return list;
   }
+
+  static bool samePitchClass(int a, int b) => a % 12 == b % 12;
 
   @override
   bool operator ==(Object other) =>

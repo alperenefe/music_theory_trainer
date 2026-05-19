@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:music_theory_trainer/models/guitar_note.dart';
+import 'package:music_theory_trainer/theory/theory_note_labels.dart';
 
 void main() {
   group('GuitarNote', () {
@@ -24,6 +25,23 @@ void main() {
       expect(GuitarNote(string: 4, fret: 0).noteName, 'La');
       expect(GuitarNote(string: 5, fret: 1).noteName, 'Fa');
       expect(GuitarNote(string: 5, fret: 2).noteName, 'Fa diyez');
+    });
+
+    test('Sol teli 2. perde La (Fa diyez değil)', () {
+      final g2 = GuitarNote(string: 2, fret: 2);
+      expect(g2.midi, 57);
+      expect(g2.noteName, 'La');
+      expect(g2.noteName, isNot('Fa diyez'));
+      expect(g2.positionLabel, 'Sol teli · 2. perde');
+    });
+
+    test('tüm perdeler TheoryNoteLabels ile uyumlu', () {
+      for (final n in GuitarNote.allNotes()) {
+        expect(
+          n.noteName,
+          TheoryNoteLabels.label(n.midi, withOctave: false),
+        );
+      }
     });
 
     test('allNotes 0-7 arası 48 nota döner', () {

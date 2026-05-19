@@ -73,7 +73,7 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
       _lastOk = false;
       _wrongYourAnswer = null;
       _wrongCorrectAnswer = null;
-      _opts = GuitarNote.mcqOptions(_target.noteName, _allNotes, _rnd);
+      _opts = GuitarNote.mcqOptionsForMidi(_target.midi, _allNotes, _rnd);
     });
     _audio.playMidi(_target.midi);
   }
@@ -87,7 +87,8 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
 
   Future<void> _pick(String label) async {
     if (_feedback) return;
-    final ok = label == _target.noteName;
+    final correctLabel = _target.noteName;
+    final ok = label == correctLabel;
     final ms = DateTime.now().millisecondsSinceEpoch - _t0;
     final attempt = PracticeAttempt(
       exercise: AppStrings.exerciseGuitarMcq,
@@ -104,7 +105,7 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
       _feedback = true;
       if (!ok) {
         _wrongYourAnswer = label;
-        _wrongCorrectAnswer = _target.noteName;
+        _wrongCorrectAnswer = correctLabel;
       }
     });
     if (ok) {
@@ -185,7 +186,7 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        '${_target.stringLabel} teli · ${_target.fret}. perde',
+                                        _target.positionLabel,
                                         style: t.titleMedium?.copyWith(
                                           color: DesignTokens.white,
                                           fontWeight: FontWeight.w800,
@@ -213,9 +214,10 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
                           const SizedBox(height: AppSpacing.lg),
                           ..._opts.map((o) {
                             final picked = _picked == o;
-                            final showOk = _feedback && o == _target.noteName;
+                            final correctLabel = _target.noteName;
+                            final showOk = _feedback && o == correctLabel;
                             final showBad =
-                                _feedback && picked && o != _target.noteName;
+                                _feedback && picked && o != correctLabel;
                             Color border = DesignTokens.borderSubtle;
                             Color bg = DesignTokens.slate900.withValues(
                               alpha: 0.35,

@@ -6,7 +6,7 @@ import '../guitar/fretboard_painter.dart';
 import '../guitar/fretboard_widget.dart';
 import '../l10n/app_strings.dart';
 import '../models/guitar_note.dart';
-import '../models/notation_pitch.dart';
+import '../theory/theory_note_labels.dart';
 import '../models/practice_prefs.dart';
 import '../utils/guitar_note_pool.dart';
 import '../models/practice_attempt.dart';
@@ -43,9 +43,8 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
   final _prefsRepo = PracticePrefsRepository();
   final _audio = GuitarAudioService.instance;
   late List<GuitarNote> _allNotes;
-  late List<String> _uniqueNames;
-
-  late String _targetName;
+  late GuitarNote _targetNote;
+  late int _targetPitchClass;
   late String _targetLabel;
   late List<GuitarNote> _correctCells;
   GuitarNote? _selected;
@@ -61,21 +60,23 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
       minMidi: widget.poolMinMidi,
       maxMidi: widget.poolMaxMidi,
     );
-    _uniqueNames = GuitarNotePool.uniqueNoteNames(_allNotes);
     _newRound();
   }
 
   void _newRound() {
-    if (_uniqueNames.isEmpty) {
+    if (_allNotes.isEmpty) {
       return;
     }
     setState(() {
-      _targetName = _uniqueNames[_rnd.nextInt(_uniqueNames.length)];
+      _targetNote = _allNotes[_rnd.nextInt(_allNotes.length)];
+      _targetPitchClass = _targetNote.pitchClass;
       _correctCells = _allNotes
-          .where((n) => n.noteName == _targetName)
+          .where((n) => n.pitchClass == _targetPitchClass)
           .toList();
-      final mid = _correctCells.first.midi;
-      _targetLabel = NotationPitch.buildDisplayLabel(mid);
+      _targetLabel = TheoryNoteLabels.label(
+        _targetNote.midi,
+        withOctave: true,
+      );
       _selected = null;
       _t0 = DateTime.now().millisecondsSinceEpoch;
       _feedback = false;
@@ -113,7 +114,7 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
       return;
     }
     _audio.playMidi(note.midi);
-    final ok = note.noteName == _targetName;
+    final ok = note.pitchClass == _targetPitchClass;
     final ms = DateTime.now().millisecondsSinceEpoch - _t0;
     final attempt = PracticeAttempt(
       exercise: AppStrings.exerciseGuitarFind,
@@ -249,8 +250,10 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
             onNext: _newRound,
             wrongYourAnswer: _lastOk
                 ? null
-                : '${_selected?.stringLabel} · ${_selected?.fret}. perde',
-            wrongCorrectAnswer: _lastOk ? null : _targetName,
+                : _selected == null
+                    ? null
+                    : '${_selected!.noteName} · ${_selected!.positionLabel}',
+            wrongCorrectAnswer: _lastOk ? null : _targetLabel,
           ),
         ],
       ),
