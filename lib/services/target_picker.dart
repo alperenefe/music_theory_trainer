@@ -4,11 +4,11 @@ import '../models/guitar_note.dart';
 import '../models/notation_pitch.dart';
 import '../models/practice_attempt.dart';
 
-/// Egzersiz hedefi: önce adil dönüşüm, sonra zayıf / hatalı notaları öne al.
+/// Egzersiz hedefi: önce havuzdaki her nota en az bir kez (1 tur), sonra zayıflara ağırlık.
+///
+/// Tur uzunluğu = havuzdaki benzersiz nota sayısı; son [tur] deneme adillik ve
+/// istatistik penceresi olarak kullanılır (sabit 50/120 yok).
 abstract final class TargetPicker {
-  static const int _fairnessWindow = 40;
-  static const int _statsWindow = 120;
-
   static NotationPitch pick(
     Random rnd,
     List<NotationPitch> pool,
@@ -89,27 +89,64 @@ abstract final class TargetPicker {
     );
   }
 
+  static List<PracticeAttempt> _lastTour(
+    List<PracticeAttempt> history,
+    int tourLen,
+  ) {
+    if (history.isEmpty) {
+      return const [];
+    }
+    if (history.length <= tourLen) {
+      return history;
+    }
+    return history.sublist(history.length - tourLen);
+  }
+
+  static bool _poolTourComplete<T>(
+    List<T> keys,
+    List<PracticeAttempt> history, {
+    required bool Function(PracticeAttempt attempt, T key) matchHistory,
+  }) {
+    for (final k in keys) {
+      if (!history.any((a) => matchHistory(a, k))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   static T _weightedPick<T>(
     Random rnd,
     List<T> keys,
     List<PracticeAttempt> history, {
     required bool Function(PracticeAttempt attempt, T key) matchHistory,
   }) {
-    final recent = history.length <= _fairnessWindow
-        ? history
-        : history.sublist(history.length - _fairnessWindow);
-    final statsSlice = history.length <= _statsWindow
-        ? history
-        : history.sublist(history.length - _statsWindow);
+    final tourLen = keys.length;
+    final recent = _lastTour(history, tourLen);
+    final tourComplete = _poolTourComplete(
+      keys,
+      history,
+      matchHistory: matchHistory,
+    );
+    final statsSlice = recent;
 
     final recentCount = <T, int>{};
+    final lifetimeCount = <T, int>{};
     for (final k in keys) {
       recentCount[k] = 0;
+      lifetimeCount[k] = 0;
     }
     for (final a in recent) {
       for (final k in keys) {
         if (matchHistory(a, k)) {
           recentCount[k] = (recentCount[k] ?? 0) + 1;
+        }
+      }
+    }
+    for (final a in history) {
+      for (final k in keys) {
+        if (matchHistory(a, k)) {
+          lifetimeCount[k] = (lifetimeCount[k] ?? 0) + 1;
         }
       }
     }
@@ -121,12 +158,26 @@ abstract final class TargetPicker {
       }
     }
 
-    final tier = (history.length ~/ 40).clamp(0, 20);
-    final tierMul = 1.0 + tier * 0.028;
+    final toursDone = tourLen > 0 ? history.length ~/ tourLen : 0;
+    final tierMul = 1.0 + toursDone.clamp(0, 20) * 0.028;
 
     double weight(T key) {
       final shown = recentCount[key] ?? 0;
-      // Az görülen nota öne: 13×1 vs 1×1 dengesizliğini kırar.
+      final ever = lifetimeCount[key] ?? 0;
+
+      // Tur tamamlanmadan: hiç çıkmamış notalar öncelikli.
+      if (!tourComplete) {
+        if (ever == 0) {
+          return 8.0;
+        }
+        var w = 1.0 / (1.0 + shown * 1.5);
+        if (shown <= minRecent) {
+          w *= 2.0;
+        }
+        return w.clamp(0.2, 8.0);
+      }
+
+      // Tur bitti: son [tourLen] denemeye göre adillik + zayıflık.
       var w = 1.0 / (1.0 + shown * 1.35);
       if (shown <= minRecent + 1) {
         w *= 1.55;
@@ -162,7 +213,9 @@ abstract final class TargetPicker {
         w *= 1.35 * tierMul;
       }
 
-      if (history.isNotEmpty && matchHistory(history.last, key) && !history.last.correct) {
+      if (history.isNotEmpty &&
+          matchHistory(history.last, key) &&
+          !history.last.correct) {
         w *= 1.28;
       }
 

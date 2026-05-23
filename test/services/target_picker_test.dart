@@ -26,6 +26,27 @@ void main() {
     expect(counts.length, greaterThan(1));
   });
 
+  test('tur uzunluğu havuz boyutuna eşit', () {
+    final pool = NotationPitch.poolForMidiRange(60, 72);
+    final rnd = Random(3);
+    final hist = <PracticeAttempt>[];
+    final seen = <int>{};
+    for (var i = 0; i < pool.length; i++) {
+      final p = TargetPicker.pick(rnd, pool, hist);
+      seen.add(p.midi);
+      hist.add(
+        PracticeAttempt(
+          exercise: 'yerlestir',
+          midi: p.midi,
+          correct: true,
+          latencyMs: 400,
+          atMillis: i,
+        ),
+      );
+    }
+    expect(seen.length, pool.length);
+  });
+
   test('uzun geçmişte havuzdan seçer', () {
     final pool = NotationPitch.trainingPool();
     final rnd = Random(2);
