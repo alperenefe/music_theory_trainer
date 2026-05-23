@@ -3,10 +3,16 @@ import 'package:flutter/material.dart';
 import '../theme/design_tokens.dart';
 import 'staff_geometry.dart';
 
+enum StaffNoteFeedbackKind { normal, wrongPick, correctTarget }
+
 final class TrebleStaffNoteSpec {
-  const TrebleStaffNoteSpec({required this.slot});
+  const TrebleStaffNoteSpec({
+    required this.slot,
+    this.feedback = StaffNoteFeedbackKind.normal,
+  });
 
   final int slot;
+  final StaffNoteFeedbackKind feedback;
 }
 
 final class TrebleStaffPainter extends CustomPainter {
@@ -117,11 +123,24 @@ final class TrebleStaffPainter extends CustomPainter {
     final cy = geometry.yForSlot(n.slot);
     final oval = Path()
       ..addOval(Rect.fromCenter(center: Offset(cx, cy), width: 24, height: 15));
-    final fill = Paint()..color = DesignTokens.white;
+    final Color fillColor;
+    final Color strokeColor;
+    switch (n.feedback) {
+      case StaffNoteFeedbackKind.normal:
+        fillColor = DesignTokens.white;
+        strokeColor = DesignTokens.slate900;
+      case StaffNoteFeedbackKind.wrongPick:
+        fillColor = DesignTokens.rose400.withValues(alpha: 0.92);
+        strokeColor = DesignTokens.rose400;
+      case StaffNoteFeedbackKind.correctTarget:
+        fillColor = DesignTokens.green400.withValues(alpha: 0.92);
+        strokeColor = DesignTokens.green400;
+    }
+    final fill = Paint()..color = fillColor;
     final stroke = Paint()
-      ..color = DesignTokens.slate900
+      ..color = strokeColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
+      ..strokeWidth = 1.4;
     canvas.drawPath(oval, fill);
     canvas.drawPath(oval, stroke);
   }

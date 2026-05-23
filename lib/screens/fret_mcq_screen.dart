@@ -10,6 +10,8 @@ import '../models/practice_prefs.dart';
 import '../utils/guitar_note_pool.dart';
 import '../models/practice_attempt.dart';
 import '../services/goal_tracker.dart';
+import '../services/practice_history.dart';
+import '../services/target_picker.dart';
 import '../services/guitar_audio_service.dart';
 import '../services/practice_prefs_repository.dart';
 import '../services/stats_repository.dart';
@@ -45,6 +47,7 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
     minMidi: widget.poolMinMidi,
     maxMidi: widget.poolMaxMidi,
   );
+  List<PracticeAttempt> _history = [];
 
   late GuitarNote _target;
   late List<String> _opts;
@@ -58,7 +61,18 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
   @override
   void initState() {
     super.initState();
-    _newRound();
+    _bootstrap();
+  }
+
+  Future<void> _bootstrap() async {
+    final h = await _repo.load();
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _history = PracticeHistory.forExercise(h, AppStrings.exerciseGuitarMcq);
+      _newRound();
+    });
   }
 
   void _newRound() {
@@ -66,7 +80,7 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
       return;
     }
     setState(() {
-      _target = _allNotes[_rnd.nextInt(_allNotes.length)];
+      _target = TargetPicker.pickGuitarNote(_rnd, _allNotes, _history);
       _t0 = DateTime.now().millisecondsSinceEpoch;
       _feedback = false;
       _picked = null;
@@ -98,8 +112,10 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
       atMillis: DateTime.now().millisecondsSinceEpoch,
     );
     await _repo.append(attempt);
+    final h = await _repo.load();
     if (!mounted) return;
     setState(() {
+      _history = PracticeHistory.forExercise(h, AppStrings.exerciseGuitarMcq);
       _picked = label;
       _lastOk = ok;
       _feedback = true;

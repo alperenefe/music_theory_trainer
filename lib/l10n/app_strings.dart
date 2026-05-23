@@ -25,6 +25,7 @@ abstract final class AppStrings {
   static const wrong = 'Yanlış';
   static const wrongYourPick = 'Seçimin';
   static const wrongCorrectIs = 'Doğru cevap';
+  static const placementOffsetLabel = 'Portede konum';
   static const clearStats = 'İstatistikleri sıfırla';
   static const attempts = 'Deneme';
   static const avgTime = 'Ort. süre';

@@ -9,6 +9,8 @@ import '../models/notation_pitch.dart';
 import '../models/practice_attempt.dart';
 import '../models/practice_prefs.dart';
 import '../services/goal_tracker.dart';
+import '../services/practice_history.dart';
+import '../services/target_picker.dart';
 import '../services/guitar_audio_service.dart';
 import '../services/practice_prefs_repository.dart';
 import '../services/stats_repository.dart';
@@ -47,6 +49,7 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
   final _audio = GuitarAudioService.instance;
   final _mic = MicPitchSession();
   late List<GuitarNote> _allNotes;
+  List<PracticeAttempt> _history = [];
 
   late GuitarNote _targetNote;
   late String _targetLabel;
@@ -83,8 +86,19 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
       minMidi: widget.poolMinMidi,
       maxMidi: widget.poolMaxMidi,
     );
-    _newRound();
+    _bootstrap();
     _loadPrefsRef();
+  }
+
+  Future<void> _bootstrap() async {
+    final h = await _repo.load();
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _history = PracticeHistory.forExercise(h, AppStrings.exerciseGuitarPlay);
+      _newRound();
+    });
   }
 
   Future<void> _loadPrefsRef() async {
@@ -117,7 +131,9 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
       return;
     }
     setState(() {
-      _assignTarget(_allNotes[_rnd.nextInt(_allNotes.length)]);
+      _assignTarget(
+        TargetPicker.pickGuitarNote(_rnd, _allNotes, _history),
+      );
       _t0 = DateTime.now().millisecondsSinceEpoch;
       _feedback = false;
       _lastOk = false;
@@ -348,10 +364,12 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
       atMillis: DateTime.now().millisecondsSinceEpoch,
     );
     await _repo.append(attempt);
+    final h = await _repo.load();
     if (!mounted) {
       return;
     }
     setState(() {
+      _history = PracticeHistory.forExercise(h, AppStrings.exerciseGuitarPlay);
       _lastOk = true;
       _feedback = true;
     });

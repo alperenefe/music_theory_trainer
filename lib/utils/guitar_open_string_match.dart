@@ -13,8 +13,10 @@ abstract final class GuitarOpenStringMatch {
 
   static GuitarOpenStringMatchResult bestForHz(
     double hz,
-    double referenceA4,
-  ) {
+    double referenceA4, {
+    int? preferString,
+    double switchHysteresisCents = 42,
+  }) {
     var bestString = 5;
     var bestScore = double.infinity;
     var bestMidi = 40;
@@ -50,11 +52,26 @@ abstract final class GuitarOpenStringMatch {
         }
       }
     }
-    return (
+    final global = (
       stringIndex: bestString,
       targetMidi: bestMidi,
       targetHz: bestHz,
     );
+    if (preferString == null ||
+        preferString < 0 ||
+        preferString > 5 ||
+        global.stringIndex == preferString) {
+      return global;
+    }
+    final onPref = bestForHzOnString(hz, referenceA4, preferString);
+    final globalCents =
+        PitchFromHz.centsDelta(hz, global.targetHz)?.abs() ?? 999.0;
+    final prefCents =
+        PitchFromHz.centsDelta(hz, onPref.targetHz)?.abs() ?? 999.0;
+    if (globalCents + switchHysteresisCents < prefCents) {
+      return global;
+    }
+    return onPref;
   }
 
   static GuitarOpenStringMatchResult bestForHzOnString(

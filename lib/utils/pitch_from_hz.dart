@@ -1,22 +1,38 @@
 import 'dart:math' as math;
 
 abstract final class PitchFromHz {
-  static double octaveNestForGuitar(double hz) {
+  /// Gitar / akort: harmonikleri katlayıp en net MIDI eşleşmesini seç.
+  static double refineForGuitar(double hz, {double referenceA4 = 440}) {
     if (!hz.isFinite || hz <= 0) {
       return hz;
     }
-    var x = hz;
-    const minClassify = 70.0;
-    const maxClassify = 520.0;
-    const floorIn = 22.0;
-    while (x < minClassify && x >= floorIn) {
-      x *= 2;
+    var bestHz = hz;
+    var bestCents = double.infinity;
+    // Yalnızca oktav katları (×2 / ÷2); ×3 Re (D) yanılgısını azaltır.
+    const factors = [1.0, 2.0, 4.0, 0.5, 0.25];
+    for (final f in factors) {
+      final c = hz * f;
+      if (c < 70 || c > 520) {
+        continue;
+      }
+      final midi = midiFromHz(c, referenceA4: referenceA4);
+      if (midi == null) {
+        continue;
+      }
+      final ref = hzFromMidi(midi, referenceA4);
+      final cents = centsDelta(c, ref)?.abs() ?? double.infinity;
+      final better = cents < bestCents - 0.5 ||
+          (cents <= bestCents + 0.5 && c < bestHz);
+      if (better) {
+        bestCents = cents;
+        bestHz = ref;
+      }
     }
-    while (x > maxClassify) {
-      x *= 0.5;
-    }
-    return x;
+    return bestHz;
   }
+
+  @Deprecated('Use refineForGuitar')
+  static double octaveNestForGuitar(double hz) => refineForGuitar(hz);
 
   static int? midiFromHz(double hz, {double referenceA4 = 440}) {
     if (!hz.isFinite || hz <= 0) {

@@ -16,6 +16,7 @@ final class FeedbackBottomBar extends StatefulWidget {
     this.wrongYourAnswer,
     this.wrongCorrectAnswer,
     this.successDetail,
+    this.placementOffsetHint,
   });
 
   final bool show;
@@ -24,6 +25,8 @@ final class FeedbackBottomBar extends StatefulWidget {
   final String? wrongYourAnswer;
   final String? wrongCorrectAnswer;
   final String? successDetail;
+  /// Porte yerleştir: «2 alt» / «1 üst» gibi.
+  final String? placementOffsetHint;
 
   @override
   State<FeedbackBottomBar> createState() => _FeedbackBottomBarState();
@@ -92,7 +95,9 @@ final class _FeedbackBottomBarState extends State<FeedbackBottomBar> {
                 ],
                 if (!widget.correct &&
                     (widget.wrongYourAnswer != null ||
-                        widget.wrongCorrectAnswer != null)) ...[
+                        widget.wrongCorrectAnswer != null ||
+                        (widget.placementOffsetHint != null &&
+                            widget.placementOffsetHint!.isNotEmpty))) ...[
                   const SizedBox(height: AppSpacing.sm),
                   if (widget.wrongYourAnswer != null &&
                       widget.wrongYourAnswer!.isNotEmpty)
@@ -103,6 +108,18 @@ final class _FeedbackBottomBarState extends State<FeedbackBottomBar> {
                         height: 1.45,
                       ),
                     ),
+                  if (widget.placementOffsetHint != null &&
+                      widget.placementOffsetHint!.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      '${AppStrings.placementOffsetLabel}: ${widget.placementOffsetHint}',
+                      style: t.bodyMedium?.copyWith(
+                        color: DesignTokens.slate400,
+                        height: 1.45,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                   if (widget.wrongCorrectAnswer != null &&
                       widget.wrongCorrectAnswer!.isNotEmpty) ...[
                     const SizedBox(height: AppSpacing.xs),

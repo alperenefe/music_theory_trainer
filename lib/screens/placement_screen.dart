@@ -10,6 +10,7 @@ import '../services/practice_history.dart';
 import '../services/practice_prefs_repository.dart';
 import '../services/stats_repository.dart';
 import '../services/target_picker.dart';
+import '../staff/staff_slot_offset.dart';
 import '../staff/treble_staff_painter.dart';
 import '../theme/app_spacing.dart';
 import '../theme/design_tokens.dart';
@@ -42,6 +43,7 @@ final class _PlacementScreenState extends State<PlacementScreen> {
   var _lastOk = false;
   String? _wrongYourAnswer;
   String? _wrongCorrectAnswer;
+  String? _slotOffsetHint;
 
   @override
   void initState() {
@@ -70,10 +72,23 @@ final class _PlacementScreenState extends State<PlacementScreen> {
       _feedback = false;
       _wrongYourAnswer = null;
       _wrongCorrectAnswer = null;
+      _slotOffsetHint = null;
     });
   }
 
-  List<TrebleStaffNoteSpec> _previewNotes() {
+  List<TrebleStaffNoteSpec> _staffNotes() {
+    if (_feedback && !_lastOk && _slot != null) {
+      return [
+        TrebleStaffNoteSpec(
+          slot: _slot!,
+          feedback: StaffNoteFeedbackKind.wrongPick,
+        ),
+        TrebleStaffNoteSpec(
+          slot: _target.staffSlot,
+          feedback: StaffNoteFeedbackKind.correctTarget,
+        ),
+      ];
+    }
     if (_slot == null) {
       return const [];
     }
@@ -108,9 +123,14 @@ final class _PlacementScreenState extends State<PlacementScreen> {
       if (!ok) {
         _wrongYourAnswer = NotationPitch.displayLabelForSlot(_slot!);
         _wrongCorrectAnswer = _target.displayTurkish;
+        _slotOffsetHint = StaffSlotOffset.describe(
+          correctSlot: _target.staffSlot,
+          userSlot: _slot!,
+        );
       } else {
         _wrongYourAnswer = null;
         _wrongCorrectAnswer = null;
+        _slotOffsetHint = null;
       }
     });
     final done = await GoalTracker.onAttemptRecorded(
@@ -152,52 +172,62 @@ final class _PlacementScreenState extends State<PlacementScreen> {
                     Expanded(
                       child: Padding(
                         padding: AppSpacing.screenHV,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                        child: Stack(
+                          fit: StackFit.expand,
                           children: [
-                            SectionHeader(
-                              title: AppStrings.placementDesc,
-                              subtitle: _target.displayTurkish,
-                              subtitleStyle: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall
-                                  ?.copyWith(
-                                    color: DesignTokens.white,
-                                    fontWeight: FontWeight.w800,
-                                    height: 1.2,
-                                    fontSize: 30,
-                                    letterSpacing: -0.5,
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                SectionHeader(
+                                  title: AppStrings.placementDesc,
+                                  subtitle: _target.displayTurkish,
+                                  subtitleStyle: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(
+                                        color: DesignTokens.white,
+                                        fontWeight: FontWeight.w800,
+                                        height: 1.2,
+                                        fontSize: 30,
+                                        letterSpacing: -0.5,
+                                      ),
+                                ),
+                                const SizedBox(height: AppSpacing.sm),
+                                Expanded(
+                                  child: PlacementStaffCard(
+                                    expandToFill: true,
+                                    pool: widget.pool,
+                                    notes: _staffNotes(),
+                                    highlightSlot: _feedback ? null : _slot,
+                                    feedback: _feedback,
+                                    onSlot: (s) {
+                                      if (_feedback) {
+                                        return;
+                                      }
+                                      if (_slot != s) {
+                                        setState(() => _slot = s);
+                                      }
+                                    },
                                   ),
+                                ),
+                                const SizedBox(height: AppSpacing.sm),
+                                FilledButton(
+                                  onPressed: _feedback ? null : _submit,
+                                  child: Text(AppStrings.confirm),
+                                ),
+                                const SizedBox(height: 148),
+                              ],
                             ),
-                            const SizedBox(height: AppSpacing.sm),
-                            Expanded(
-                              child: PlacementStaffCard(
-                                expandToFill: true,
-                                pool: widget.pool,
-                                notes: _previewNotes(),
-                                highlightSlot:
-                                    _feedback && !_lastOk ? null : _slot,
-                                wrongHighlightSlot: _feedback &&
-                                        !_lastOk &&
-                                        _slot != null
-                                    ? _slot
-                                    : null,
-                                correctHighlightSlot:
-                                    _feedback && !_lastOk
-                                        ? _target.staffSlot
-                                        : null,
-                                feedback: _feedback,
-                                onSlot: (s) {
-                                  if (_slot != s) {
-                                    setState(() => _slot = s);
-                                  }
-                                },
+                            Align(
+                              alignment: Alignment.bottomCenter,
+                              child: FeedbackBottomBar(
+                                show: _feedback,
+                                correct: _lastOk,
+                                onNext: _newRound,
+                                wrongYourAnswer: _wrongYourAnswer,
+                                wrongCorrectAnswer: _wrongCorrectAnswer,
+                                placementOffsetHint: _slotOffsetHint,
                               ),
-                            ),
-                            const SizedBox(height: AppSpacing.sm),
-                            FilledButton(
-                              onPressed: _feedback ? null : _submit,
-                              child: Text(AppStrings.confirm),
                             ),
                           ],
                         ),
@@ -207,13 +237,6 @@ final class _PlacementScreenState extends State<PlacementScreen> {
                 ),
               ),
             ),
-          ),
-          FeedbackBottomBar(
-            show: _feedback,
-            correct: _lastOk,
-            onNext: _newRound,
-            wrongYourAnswer: _wrongYourAnswer,
-            wrongCorrectAnswer: _wrongCorrectAnswer,
           ),
         ],
       ),

@@ -11,6 +11,8 @@ import '../models/practice_prefs.dart';
 import '../utils/guitar_note_pool.dart';
 import '../models/practice_attempt.dart';
 import '../services/goal_tracker.dart';
+import '../services/practice_history.dart';
+import '../services/target_picker.dart';
 import '../services/guitar_audio_service.dart';
 import '../services/practice_prefs_repository.dart';
 import '../services/stats_repository.dart';
@@ -43,6 +45,7 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
   final _prefsRepo = PracticePrefsRepository();
   final _audio = GuitarAudioService.instance;
   late List<GuitarNote> _allNotes;
+  List<PracticeAttempt> _history = [];
   late GuitarNote _targetNote;
   late int _targetPitchClass;
   late String _targetLabel;
@@ -60,7 +63,18 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
       minMidi: widget.poolMinMidi,
       maxMidi: widget.poolMaxMidi,
     );
-    _newRound();
+    _bootstrap();
+  }
+
+  Future<void> _bootstrap() async {
+    final h = await _repo.load();
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _history = PracticeHistory.forExercise(h, AppStrings.exerciseGuitarFind);
+      _newRound();
+    });
   }
 
   void _newRound() {
@@ -68,7 +82,11 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
       return;
     }
     setState(() {
-      _targetNote = _allNotes[_rnd.nextInt(_allNotes.length)];
+      _targetNote = TargetPicker.pickGuitarNoteByPitchClass(
+        _rnd,
+        _allNotes,
+        _history,
+      );
       _targetPitchClass = _targetNote.pitchClass;
       _correctCells = _allNotes
           .where((n) => n.pitchClass == _targetPitchClass)
@@ -124,8 +142,10 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
       atMillis: DateTime.now().millisecondsSinceEpoch,
     );
     await _repo.append(attempt);
+    final h = await _repo.load();
     if (!mounted) return;
     setState(() {
+      _history = PracticeHistory.forExercise(h, AppStrings.exerciseGuitarFind);
       _selected = note;
       _lastOk = ok;
       _feedback = true;

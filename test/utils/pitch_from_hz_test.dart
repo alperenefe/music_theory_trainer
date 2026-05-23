@@ -16,10 +16,10 @@ void main() {
       expect(PitchFromHz.midiFromHz(432, referenceA4: 432), 69);
     });
 
-    test('octaveNestForGuitar yarım frekansı yukarı iter', () {
-      expect(PitchFromHz.octaveNestForGuitar(41), closeTo(82, 0.01));
-      expect(PitchFromHz.octaveNestForGuitar(82), closeTo(82, 0.01));
-      expect(PitchFromHz.midiFromHz(PitchFromHz.octaveNestForGuitar(41)), 40);
+    test('refineForGuitar düşük frekansı oktava taşır', () {
+      expect(PitchFromHz.refineForGuitar(41), closeTo(82.41, 0.5));
+      expect(PitchFromHz.refineForGuitar(82), closeTo(82.41, 0.5));
+      expect(PitchFromHz.midiFromHz(PitchFromHz.refineForGuitar(41)), 40);
     });
   });
 }

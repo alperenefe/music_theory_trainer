@@ -163,8 +163,11 @@ final class _GuitarTunerScreenState extends State<GuitarTunerScreen> {
     if (!hz.isFinite) {
       return;
     }
-    final nested = PitchFromHz.octaveNestForGuitar(hz);
-    final smoothed = _hzSmoother.push(nested);
+    final refined = PitchFromHz.refineForGuitar(
+      hz,
+      referenceA4: _prefs.referenceA4Hz,
+    );
+    final smoothed = _hzSmoother.push(refined);
     if (smoothed == null) {
       setState(() {
         _displayHz = null;
@@ -177,6 +180,7 @@ final class _GuitarTunerScreenState extends State<GuitarTunerScreen> {
     final cand = GuitarOpenStringMatch.bestForHz(
       smoothed,
       _prefs.referenceA4Hz,
+      preferString: _autoString,
     );
     final locked = _stringLock.push(cand.stringIndex);
     final m = GuitarOpenStringMatch.bestForHzOnString(
