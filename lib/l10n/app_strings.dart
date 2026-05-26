@@ -9,6 +9,12 @@ abstract final class AppStrings {
   static String homeStreakDays(int n) => '$n günlük pratik serisi';
   static const homeGlobalAccuracy = 'Genel doğruluk';
   static const homeMicBadge = 'Mikrofon';
+  static const homeCtaTuner = 'Akort';
+  static const homeCtaGoals = 'Hedefler';
+  static const homePrivacyFooter =
+      'Tüm veriler yalnızca cihazında saklanır; buluta gönderilmez.';
+  static const tunerPrivacyNote =
+      'Mikrofon yalnızca akort için kullanılır; ses kaydı saklanmaz.';
   static String sessionScore(int correct, int total) =>
       'Puan: $correct/$total';
   static const placementTitle = 'Portede yerleştir';
@@ -167,6 +173,18 @@ abstract final class AppStrings {
   static const tunerInTune = 'tam';
   static const tunerRefA4 = 'La4 referansı (Hz)';
   static const tunerPlayRef = 'Referans tonu çal';
+  static const tunerManualOn = 'Manuel tel seçimi';
+  static const tunerAutoOn = 'Otomatik tel algılama';
+  static const tunerSwitchManual = 'Manuel';
+  static const tunerSwitchAuto = 'Otomatik';
+
+  static const practiceModePlacement = 'Yerleşim pratiği';
+  static const practiceModeMcq = 'Tanıma pratiği';
+  static const practiceModeInterval = 'Aralık pratiği';
+  static const practiceModeChord = 'Akor pratiği';
+  static const practiceModeScale = 'Gam pratiği';
+  static const landingPreviewTitle = 'Bu alıştırmada';
+  static const scaleSelectedNotesTitle = 'Seçilen notalar';
 
   static const soundOn = 'Ses açık';
   static const soundOff = 'Ses kapalı';

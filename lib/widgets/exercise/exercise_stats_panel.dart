@@ -36,7 +36,11 @@ final class ExerciseStatsPanel extends StatelessWidget {
               : AppStrings.exerciseStatsWindow(windowSize),
         ),
         const SizedBox(height: AppSpacing.md),
-        StatsSummaryCard(summary: summary, series: series),
+        StatsSummaryCard(
+          summary: summary,
+          series: series,
+          layout: StatsSummaryLayout.landingRow,
+        ),
         if (summary.total > 0) ...[
           const SizedBox(height: AppSpacing.lg),
           StatsMidiBreakdown(

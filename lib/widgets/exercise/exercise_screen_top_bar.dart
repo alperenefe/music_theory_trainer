@@ -8,12 +8,14 @@ final class ExerciseScreenTopBar extends StatelessWidget {
   const ExerciseScreenTopBar({
     super.key,
     required this.title,
+    this.modeLabel,
     this.sessionCorrect,
     this.sessionTotal,
     this.trailing,
   });
 
   final String title;
+  final String? modeLabel;
   final int? sessionCorrect;
   final int? sessionTotal;
   final Widget? trailing;
@@ -36,12 +38,26 @@ final class ExerciseScreenTopBar extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.xs),
           Expanded(
-            child: Text(
-              title,
-              style: t.titleLarge?.copyWith(
-                color: DesignTokens.white,
-                fontWeight: FontWeight.w800,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: t.titleLarge?.copyWith(
+                    color: DesignTokens.white,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                if (modeLabel != null && modeLabel!.isNotEmpty)
+                  Text(
+                    modeLabel!,
+                    style: t.labelSmall?.copyWith(
+                      color: DesignTokens.slate500,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+              ],
             ),
           ),
           if (trailing != null) trailing!,
@@ -60,7 +76,7 @@ final class ExerciseScreenTopBar extends StatelessWidget {
               child: Text(
                 AppStrings.sessionScore(sessionCorrect!, sessionTotal!),
                 style: t.labelMedium?.copyWith(
-                  color: DesignTokens.violet400,
+                  color: DesignTokens.green400,
                   fontWeight: FontWeight.w800,
                 ),
               ),

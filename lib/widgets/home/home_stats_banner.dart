@@ -6,6 +6,7 @@ import '../../services/practice_streak.dart';
 import '../../services/stats_summary.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
+import '../../screens/stats_screen.dart';
 import '../cards/soft_card.dart';
 
 /// Günlük seri + genel doğruluk (ZIP ana sayfa şeridi).
@@ -16,6 +17,12 @@ final class HomeStatsBanner extends StatelessWidget {
   });
 
   final List<PracticeAttempt> attempts;
+
+  Future<void> _openStats(BuildContext context) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(builder: (_) => const StatsScreen()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +35,12 @@ final class HomeStatsBanner extends StatelessWidget {
         horizontal: AppSpacing.md,
         vertical: AppSpacing.md,
       ),
-      child: Column(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          onTap: () => _openStats(context),
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
@@ -36,7 +48,7 @@ final class HomeStatsBanner extends StatelessWidget {
               Icon(
                 Icons.local_fire_department_rounded,
                 color: streak > 0
-                    ? const Color(0xFFF97316)
+                    ? DesignTokens.streakOrange
                     : DesignTokens.slate600,
                 size: 22,
               ),
@@ -82,14 +94,48 @@ final class HomeStatsBanner extends StatelessWidget {
           const SizedBox(height: 4),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: summary.total == 0 ? 0 : summary.accuracy,
-              minHeight: 8,
-              backgroundColor: DesignTokens.slate800,
-              color: DesignTokens.green400,
-            ),
+            child: summary.total == 0
+                ? LinearProgressIndicator(
+                    value: 0,
+                    minHeight: 8,
+                    backgroundColor: DesignTokens.slate800,
+                    color: DesignTokens.green400,
+                  )
+                : ShaderMask(
+                    shaderCallback: (bounds) =>
+                        DesignTokens.statsProgressGradient.createShader(
+                      Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+                    ),
+                    blendMode: BlendMode.srcIn,
+                    child: LinearProgressIndicator(
+                      value: summary.accuracy,
+                      minHeight: 8,
+                      backgroundColor: DesignTokens.slate800,
+                      color: DesignTokens.white,
+                    ),
+                  ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Row(
+            children: [
+              Text(
+                AppStrings.statsTitle,
+                style: t.labelSmall?.copyWith(
+                  color: DesignTokens.slate500,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 18,
+                color: DesignTokens.slate500,
+              ),
+            ],
           ),
         ],
+          ),
+        ),
       ),
     );
   }

@@ -152,6 +152,7 @@ final class _McqScreenState extends State<McqScreen> {
                   children: [
                     ExerciseScreenTopBar(
                       title: AppStrings.mcqTitle,
+                      modeLabel: AppStrings.practiceModeMcq,
                       sessionCorrect: _session.correct,
                       sessionTotal: _session.total,
                     ),
@@ -208,6 +209,7 @@ final class _McqScreenState extends State<McqScreen> {
             onNext: _newRound,
             wrongYourAnswer: _wrongYourAnswer,
             wrongCorrectAnswer: _wrongCorrectAnswer,
+            style: FeedbackBottomBarStyle.inlineCompact,
           ),
         ],
       ),

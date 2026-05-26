@@ -127,6 +127,7 @@ final class _IntervalMcqScreenState extends State<IntervalMcqScreen> {
                   children: [
                     ExerciseScreenTopBar(
                       title: AppStrings.intervalTitle,
+                      modeLabel: AppStrings.practiceModeInterval,
                       sessionCorrect: _session.correct,
                       sessionTotal: _session.total,
                     ),
@@ -171,6 +172,7 @@ final class _IntervalMcqScreenState extends State<IntervalMcqScreen> {
             onNext: _newQuestion,
             wrongYourAnswer: _wrongYour,
             wrongCorrectAnswer: _wrongCorrect,
+            style: FeedbackBottomBarStyle.inlineCompact,
           ),
         ],
       ),

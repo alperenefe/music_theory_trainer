@@ -8,6 +8,7 @@ import '../services/stats_repository.dart';
 import '../theme/app_spacing.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
 import '../widgets/exercise/exercise_screen_top_bar.dart';
+import '../widgets/exercise/exercise_landing_preview.dart';
 import '../widgets/exercise/exercise_stats_panel.dart';
 import '../widgets/home/activity_goal_progress_strip.dart';
 import '../widgets/loading/home_list_skeleton.dart';
@@ -122,6 +123,8 @@ final class _ExerciseLandingScreenState extends State<ExerciseLandingScreen> {
                             title: widget.title,
                             subtitle: widget.description,
                           ),
+                          const SizedBox(height: AppSpacing.md),
+                          ExerciseLandingPreview(goalKind: widget.goalKind),
                           if (_goalProgress != null) ...[
                             const SizedBox(height: AppSpacing.md),
                             ActivityGoalProgressStrip(

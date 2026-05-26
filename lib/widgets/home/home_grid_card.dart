@@ -35,13 +35,24 @@ final class HomeGridCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
     return SoftCard(
-          padding: const EdgeInsets.all(AppSpacing.md),
+          padding: EdgeInsets.zero,
           child: Material(
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(AppRadii.lg),
               onTap: onTap,
-              child: Column(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border(
+                    left: BorderSide(color: accent, width: 4),
+                  ),
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(AppRadii.lg),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -124,6 +135,8 @@ final class HomeGridCard extends StatelessWidget {
                     ),
                   ],
                 ],
+                  ),
+                ),
               ),
             ),
           ),

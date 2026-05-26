@@ -6,6 +6,8 @@ import 'package:music_theory_trainer/l10n/app_strings.dart';
 import 'package:music_theory_trainer/models/practice_prefs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'test_pump_helpers.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -18,8 +20,7 @@ void main() {
   });
   testWidgets('uygulama açılır', (tester) async {
     await tester.pumpWidget(const MusicTheoryApp());
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 600));
+    await pumpUntilHomeLoaded(tester);
     expect(find.text(AppStrings.appTitle), findsOneWidget);
   });
 }

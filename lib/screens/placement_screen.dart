@@ -181,6 +181,7 @@ final class _PlacementScreenState extends State<PlacementScreen> {
             children: [
               ExerciseScreenTopBar(
                 title: AppStrings.placementTitle,
+                modeLabel: AppStrings.practiceModePlacement,
                 sessionCorrect: _session.correct,
                 sessionTotal: _session.total,
               ),

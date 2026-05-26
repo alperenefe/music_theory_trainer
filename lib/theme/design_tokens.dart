@@ -20,6 +20,30 @@ abstract final class DesignTokens {
 
   static const green400 = Color(0xFF4ADE80);
   static const rose400 = Color(0xFFFB7185);
+  static const streakOrange = Color(0xFFF97316);
+  static const tunerCyan = Color(0xFF0891B2);
+
+  /// Gitar perde tahtası
+  static const fretboardWoodDark = Color(0xFF1A1108);
+  static const fretboardWoodMid = Color(0xFF4A3820);
+  static const fretboardFretGold = Color(0xFFE8C78A);
+  static const fretboardFretLine = Color(0xFFC9A06A);
+  static const fretboardInlay = Color(0xFFD8BE78);
+  static const fretboardStringTint = Color(0xFF8A7050);
+
+  /// Akort tel şeridi (E→e)
+  static const tunerStringColors = [
+    Color(0xFFE85D2C),
+    Color(0xFFEF4444),
+    Color(0xFFFBBF24),
+    Color(0xFF22C55E),
+    Color(0xFF3B82F6),
+    Color(0xFFA855F7),
+  ];
+
+  static const statsProgressGradient = LinearGradient(
+    colors: [blue500, violet500],
+  );
 
   static const cardBg = slate800;
   static const borderSubtle = slate700;

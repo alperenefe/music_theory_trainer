@@ -37,6 +37,8 @@ final class _GuitarTunerScreenState extends State<GuitarTunerScreen> {
   final _stringLock = PitchStringLock(framesToSwitch: 20);
   PracticePrefs _prefs = const PracticePrefs();
   var _autoString = 5;
+  int? _lockedString;
+  var _manualMode = false;
   double? _displayHz;
   double? _activeTargetHz;
   int? _activeTargetMidi;
@@ -140,7 +142,28 @@ final class _GuitarTunerScreenState extends State<GuitarTunerScreen> {
     }
   }
 
-  GuitarNote get _openNote => GuitarNote(string: _autoString, fret: 0);
+  int get _activeString =>
+      (_manualMode && _lockedString != null) ? _lockedString! : _autoString;
+
+  GuitarNote get _openNote => GuitarNote(string: _activeString, fret: 0);
+
+  void _toggleManualMode() {
+    setState(() {
+      _manualMode = !_manualMode;
+      if (!_manualMode) {
+        _lockedString = null;
+      } else {
+        _lockedString = _autoString;
+      }
+    });
+  }
+
+  void _selectString(int stringIndex) {
+    setState(() {
+      _manualMode = true;
+      _lockedString = stringIndex;
+    });
+  }
 
   void _onPitch(PitchFrame frame) {
     if (!mounted || !_listening) {
@@ -177,12 +200,17 @@ final class _GuitarTunerScreenState extends State<GuitarTunerScreen> {
       });
       return;
     }
+    final prefer = _manualMode && _lockedString != null
+        ? _lockedString!
+        : _autoString;
     final cand = GuitarOpenStringMatch.bestForHz(
       smoothed,
       _prefs.referenceA4Hz,
-      preferString: _autoString,
+      preferString: prefer,
     );
-    final locked = _stringLock.push(cand.stringIndex);
+    final locked = _manualMode && _lockedString != null
+        ? _lockedString!
+        : _stringLock.push(cand.stringIndex);
     final m = GuitarOpenStringMatch.bestForHzOnString(
       smoothed,
       _prefs.referenceA4Hz,
@@ -280,18 +308,53 @@ final class _GuitarTunerScreenState extends State<GuitarTunerScreen> {
                         ),
                       ),
                     ],
-                    const SizedBox(height: AppSpacing.lg),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _manualMode
+                                ? AppStrings.tunerManualOn
+                                : AppStrings.tunerAutoOn,
+                            style: t.labelMedium?.copyWith(
+                              color: DesignTokens.slate400,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: _toggleManualMode,
+                          icon: Icon(
+                            _manualMode
+                                ? Icons.touch_app_rounded
+                                : Icons.auto_mode_rounded,
+                            size: 18,
+                          ),
+                          label: Text(
+                            _manualMode
+                                ? AppStrings.tunerSwitchAuto
+                                : AppStrings.tunerSwitchManual,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
                     TunerOpenStringStrip(
                       textTheme: t,
                       listening: _listening,
                       hasPitch: _displayHz != null,
                       autoStringIndex: _autoString,
+                      lockedStringIndex: _lockedString,
+                      manualMode: _manualMode,
+                      onStringTap: _selectString,
                     ),
                     const SizedBox(height: AppSpacing.lg),
                     SizedBox(
                       height: 220,
                       child: CustomPaint(
-                        painter: TunerGaugePainter(cents: gaugeCents),
+                        painter: TunerGaugePainter(
+                          cents: gaugeCents,
+                          listening: _listening,
+                        ),
                         child: const SizedBox.expand(),
                       ),
                     ),
@@ -316,6 +379,15 @@ final class _GuitarTunerScreenState extends State<GuitarTunerScreen> {
                         () => _prefs = _prefs.copyWith(referenceA4Hz: v),
                       ),
                       onSliderChangeEnd: _saveRef,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      AppStrings.tunerPrivacyNote,
+                      textAlign: TextAlign.center,
+                      style: t.labelSmall?.copyWith(
+                        color: DesignTokens.slate600,
+                        height: 1.4,
+                      ),
                     ),
                   ],
                 ),

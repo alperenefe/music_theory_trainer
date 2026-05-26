@@ -35,37 +35,48 @@ final class StatsMidiBreakdown extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
         ...midiStats.map(
-          (m) => Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: RepaintBoundary(
-              child: SoftCard(
-                padding: AppSpacing.cardPadDense,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        StatsMidiLabel.forMidi(
-                          m.midi,
-                          guitarStyle: guitarStyleLabels,
-                        ),
-                        style: t.bodyMedium?.copyWith(
-                          color: DesignTokens.white,
-                        ),
+          (m) {
+            final pct = (m.accuracy * 100).round();
+            final accColor = pct >= 80
+                ? DesignTokens.green400
+                : const Color(0xFFF97316);
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: RepaintBoundary(
+                    child: SoftCard(
+                      padding: AppSpacing.cardPadDense,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              StatsMidiLabel.forMidi(
+                                m.midi,
+                                guitarStyle: guitarStyleLabels,
+                              ),
+                              style: t.bodyMedium?.copyWith(
+                                color: DesignTokens.white,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '$pct% · ${m.correct}/${m.total} · ${m.avgMs} ms',
+                            style: t.labelMedium?.copyWith(
+                              color: accColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    Text(
-                      '${(m.accuracy * 100).round()}% · '
-                      '${m.correct}/${m.total} · ${m.avgMs} ms',
-                      style: t.labelMedium?.copyWith(
-                        color: DesignTokens.slate400,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ),
+                if (m != midiStats.last)
+                  const Divider(height: 1, color: DesignTokens.slate800),
+              ],
+            );
+          },
         ),
       ],
     );

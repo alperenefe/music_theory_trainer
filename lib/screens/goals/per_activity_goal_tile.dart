@@ -30,7 +30,9 @@ final class PerActivityGoalTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SwitchListTile(
+          Material(
+            color: Colors.transparent,
+            child: SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(
               title,
@@ -56,6 +58,7 @@ final class PerActivityGoalTile extends StatelessWidget {
                 ),
               );
             },
+          ),
           ),
           if (goal.enabled) ...[
             const SizedBox(height: AppSpacing.sm),

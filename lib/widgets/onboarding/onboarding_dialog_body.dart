@@ -75,8 +75,21 @@ final class _OnboardingDialogBodyState extends State<OnboardingDialogBody> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Row(
+                    children: [
+                      const Spacer(),
+                      Text(
+                        '${_page + 1} / 3',
+                        style: t.labelMedium?.copyWith(
+                          color: DesignTokens.slate500,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
                   SizedBox(
-                    height: 220,
+                    height: 280,
                     child: PageView(
                       controller: _pc,
                       onPageChanged: (i) => setState(() => _page = i),
@@ -85,16 +98,31 @@ final class _OnboardingDialogBodyState extends State<OnboardingDialogBody> {
                           title: AppStrings.ob1Title,
                           body: AppStrings.ob1Body,
                           textTheme: t,
+                          icon: Icons.piano_rounded,
+                          gradientColors: const [
+                            DesignTokens.blue500,
+                            DesignTokens.tunerCyan,
+                          ],
                         ),
                         OnboardingPage(
                           title: AppStrings.ob2Title,
                           body: AppStrings.ob2Body,
                           textTheme: t,
+                          icon: Icons.school_rounded,
+                          gradientColors: const [
+                            DesignTokens.violet500,
+                            DesignTokens.blue500,
+                          ],
                         ),
                         OnboardingPage(
                           title: AppStrings.ob3Title,
                           body: AppStrings.ob3Body,
                           textTheme: t,
+                          icon: Icons.flag_rounded,
+                          gradientColors: const [
+                            DesignTokens.green400,
+                            DesignTokens.tunerCyan,
+                          ],
                         ),
                       ],
                     ),

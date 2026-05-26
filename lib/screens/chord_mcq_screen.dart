@@ -162,6 +162,7 @@ final class _ChordMcqScreenState extends State<ChordMcqScreen> {
                   children: [
                     ExerciseScreenTopBar(
                       title: AppStrings.chordTitle,
+                      modeLabel: AppStrings.practiceModeChord,
                       sessionCorrect: _session.correct,
                       sessionTotal: _session.total,
                     ),
@@ -207,6 +208,7 @@ final class _ChordMcqScreenState extends State<ChordMcqScreen> {
             onNext: _newQuestion,
             wrongYourAnswer: _wrongYour,
             wrongCorrectAnswer: _wrongCorrect,
+            style: FeedbackBottomBarStyle.inlineCompact,
           ),
         ],
       ),

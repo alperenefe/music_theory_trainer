@@ -70,7 +70,7 @@ final class FretboardPainter extends CustomPainter {
     final sh = _strH(size);
 
     // --- Background ---
-    final bgPaint = Paint()..color = const Color(0xFF1A1108);
+    final bgPaint = Paint()..color = DesignTokens.fretboardWoodDark;
     canvas.drawRRect(
       RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(12)),
       bgPaint,
@@ -78,10 +78,10 @@ final class FretboardPainter extends CustomPainter {
 
     // --- Fret lines (vertical) ---
     final fretPaint = Paint()
-      ..color = const Color(0xFFC9A06A).withValues(alpha: 0.58)
+      ..color = DesignTokens.fretboardFretLine.withValues(alpha: 0.58)
       ..strokeWidth = 1.05;
     final nutPaint = Paint()
-      ..color = const Color(0xFFE8C78A)
+      ..color = DesignTokens.fretboardFretGold
       ..strokeWidth = 4.5;
 
     final yTop = boardTopPad;
@@ -106,20 +106,20 @@ final class FretboardPainter extends CustomPainter {
     for (var s = 0; s < 6; s++) {
       final y = _yForString(size, s);
       final sp = Paint()
-        ..color = const Color(0xFFD8BE78).withValues(alpha: 0.9)
+        ..color = DesignTokens.fretboardInlay.withValues(alpha: 0.9)
         ..strokeWidth = thicknesses[s];
       canvas.drawLine(Offset(nutX, y), Offset(_fingerboardEnd(size), y), sp);
 
       // Open string area line
       final openSp = Paint()
-        ..color = const Color(0xFFCCB266).withValues(alpha: 0.4)
+        ..color = DesignTokens.fretboardInlay.withValues(alpha: 0.4)
         ..strokeWidth = thicknesses[s];
       canvas.drawLine(Offset(openStringLeft, y), Offset(nutX, y), openSp);
     }
 
     // --- Position dots ---
     const markerFrets = [3, 5, 7];
-    final dotPaint = Paint()..color = const Color(0xFF4A3820);
+    final dotPaint = Paint()..color = DesignTokens.fretboardWoodMid;
     for (final mf in markerFrets) {
       if (mf < minFret || mf > maxFret) continue;
       final x = _xForFret(size, mf);
@@ -135,7 +135,7 @@ final class FretboardPainter extends CustomPainter {
         f == 0 ? 'O' : '$f',
         Offset(x, boardTopPad / 2),
         const TextStyle(
-          color: Color(0xFF8A7050),
+          color: DesignTokens.fretboardStringTint,
           fontSize: 10,
           fontWeight: FontWeight.w600,
         ),
@@ -151,7 +151,7 @@ final class FretboardPainter extends CustomPainter {
         labels[s],
         Offset(14, y),
         const TextStyle(
-          color: Color(0xFF8A7050),
+          color: DesignTokens.fretboardStringTint,
           fontSize: 10,
           fontWeight: FontWeight.w700,
         ),

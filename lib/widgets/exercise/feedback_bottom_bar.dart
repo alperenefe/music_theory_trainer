@@ -8,7 +8,8 @@ import '../../theme/design_tokens.dart';
 import 'result_pill.dart';
 
 /// [placementCompact]: cevap portede gösterilir; altta yalnızca özet + Sonraki.
-enum FeedbackBottomBarStyle { standard, placementCompact }
+/// [inlineCompact]: tek satır bordered kutu + sağda Sonraki (MCQ vb.).
+enum FeedbackBottomBarStyle { standard, placementCompact, inlineCompact }
 
 final class FeedbackBottomBar extends StatefulWidget {
   const FeedbackBottomBar({
@@ -63,12 +64,96 @@ final class _FeedbackBottomBarState extends State<FeedbackBottomBar> {
       return const SizedBox.shrink();
     }
     final t = Theme.of(context).textTheme;
-    final compact = widget.style == FeedbackBottomBarStyle.placementCompact;
-    final showWrongLines = !widget.correct && !compact;
+    final placementCompact =
+        widget.style == FeedbackBottomBarStyle.placementCompact;
+    final inlineCompact = widget.style == FeedbackBottomBarStyle.inlineCompact;
+    final compact = placementCompact || inlineCompact;
+    final showWrongLines =
+        !widget.correct && !compact && !inlineCompact;
     final showPlacementHint = !widget.correct &&
-        compact &&
+        placementCompact &&
         widget.placementOffsetHint != null &&
         widget.placementOffsetHint!.isNotEmpty;
+
+    if (inlineCompact) {
+      final summary = widget.correct
+          ? (widget.successDetail?.isNotEmpty == true
+              ? widget.successDetail!
+              : AppStrings.correct)
+          : [
+              if (widget.wrongYourAnswer?.isNotEmpty == true)
+                '${AppStrings.wrongYourPick}: ${widget.wrongYourAnswer}',
+              if (widget.wrongCorrectAnswer?.isNotEmpty == true)
+                '${AppStrings.wrongCorrectIs}: ${widget.wrongCorrectAnswer}',
+            ].join(' · ');
+      final borderColor = widget.correct
+          ? DesignTokens.green400.withValues(alpha: 0.65)
+          : DesignTokens.streakOrange.withValues(alpha: 0.65);
+      final fill = widget.correct
+          ? DesignTokens.green400.withValues(alpha: 0.12)
+          : DesignTokens.streakOrange.withValues(alpha: 0.12);
+
+      final inlineBody = Padding(
+        padding: AppSpacing.screenH.copyWith(
+          top: AppSpacing.md,
+          bottom: AppSpacing.md,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm,
+                ),
+                decoration: BoxDecoration(
+                  color: fill,
+                  borderRadius: BorderRadius.circular(AppRadii.md),
+                  border: Border.all(color: borderColor, width: 1.5),
+                ),
+                child: Text(
+                  summary,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: t.labelLarge?.copyWith(
+                    color: DesignTokens.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            FilledButton(
+              onPressed: widget.onNext,
+              style: FilledButton.styleFrom(
+                backgroundColor: DesignTokens.white,
+                foregroundColor: DesignTokens.slate900,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.md,
+                ),
+              ),
+              child: Text(AppStrings.next),
+            ),
+          ],
+        ),
+      );
+      if (widget.embedded) {
+        return inlineBody;
+      }
+      return Container(
+        decoration: BoxDecoration(
+          color: DesignTokens.slate900.withValues(alpha: 0.97),
+          border: Border(
+            top: BorderSide(
+              color: DesignTokens.borderSubtle.withValues(alpha: 0.85),
+            ),
+          ),
+        ),
+        child: SafeArea(top: false, child: inlineBody),
+      );
+    }
 
     final body = Column(
       mainAxisAlignment: MainAxisAlignment.end,

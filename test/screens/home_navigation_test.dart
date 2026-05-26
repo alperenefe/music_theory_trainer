@@ -7,6 +7,8 @@ import 'package:music_theory_trainer/l10n/app_strings.dart';
 import 'package:music_theory_trainer/models/practice_prefs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../test_pump_helpers.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -35,11 +37,19 @@ void main() {
     });
 
     await tester.pumpWidget(const MusicTheoryApp());
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 900));
+    await pumpUntilHomeLoaded(tester);
 
     expect(find.text(AppStrings.appTitle), findsOneWidget);
-    expect(find.text(AppStrings.statsTitle), findsNothing);
+    expect(find.text(AppStrings.homeCtaTuner), findsOneWidget);
+    expect(find.text(AppStrings.homeCtaGoals), findsOneWidget);
+
+    await tester.tap(find.text(AppStrings.statsTitle));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text(AppStrings.statsFilterAll), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+    await tester.pump();
+    await pumpUntilHomeLoaded(tester);
 
     await tester.tap(find.text(AppStrings.placementTitle));
     await tester.pump();

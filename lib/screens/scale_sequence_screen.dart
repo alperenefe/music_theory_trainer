@@ -16,6 +16,7 @@ import '../theme/app_spacing.dart';
 import '../theme/design_tokens.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
 import '../widgets/exercise/feedback_bottom_bar.dart';
+import '../widgets/cards/soft_card.dart';
 import '../widgets/exercise/exercise_screen_top_bar.dart';
 import '../widgets/text/section_header.dart';
 import 'goal_completion_screen.dart';
@@ -195,6 +196,7 @@ final class _ScaleSequenceScreenState extends State<ScaleSequenceScreen> {
                   children: [
                     ExerciseScreenTopBar(
                       title: AppStrings.scaleTitle,
+                      modeLabel: AppStrings.practiceModeScale,
                       sessionCorrect: _session.correct,
                       sessionTotal: _session.total,
                     ),
@@ -253,7 +255,23 @@ final class _ScaleSequenceScreenState extends State<ScaleSequenceScreen> {
                           ),
                           if (_pickedLabels.isNotEmpty) ...[
                             const SizedBox(height: AppSpacing.md),
-                            _ScaleSequenceChipRow(labels: _pickedLabels),
+                            SoftCard(
+                              padding: const EdgeInsets.all(AppSpacing.md),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(
+                                    AppStrings.scaleSelectedNotesTitle,
+                                    style: t.labelMedium?.copyWith(
+                                      color: DesignTokens.slate400,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.sm),
+                                  _ScaleSequenceChipRow(labels: _pickedLabels),
+                                ],
+                              ),
+                            ),
                           ],
                           const SizedBox(height: AppSpacing.md),
                           Wrap(

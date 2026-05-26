@@ -14,9 +14,12 @@ import '../models/practice_attempt.dart';
 import '../theme/app_spacing.dart';
 import '../theme/design_tokens.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
+import '../screens/goals_screen.dart';
+import '../screens/guitar_tuner_screen.dart';
 import '../widgets/home/home_grid_card.dart';
 import '../widgets/home/home_route_card.dart';
 import '../widgets/home/home_stats_banner.dart';
+import '../widgets/home/home_twin_cta_row.dart';
 import '../widgets/loading/home_list_skeleton.dart';
 import '../widgets/onboarding/app_onboarding_dialog.dart';
 import '../widgets/text/section_header.dart';
@@ -82,6 +85,22 @@ final class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     setState(() => _prefs = next);
+  }
+
+  Future<void> _openTuner() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(builder: (_) => const GuitarTunerScreen()),
+    );
+    await _refresh();
+  }
+
+  Future<void> _openGoals() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => GoalsScreen(repo: _prefsRepo),
+      ),
+    );
+    await _refresh();
   }
 
   Future<void> _openRoute(HomeRouteSpec spec) async {
@@ -264,7 +283,21 @@ final class _HomeScreenState extends State<HomeScreen> {
       const SizedBox(height: AppSpacing.sectionGap),
       HomeStatsBanner(attempts: _attempts),
       const SizedBox(height: AppSpacing.sectionGap),
+      HomeTwinCtaRow(
+        onTunerTap: _openTuner,
+        onGoalsTap: _openGoals,
+      ),
+      const SizedBox(height: AppSpacing.sectionGap),
       ..._buildSections(),
+      const SizedBox(height: AppSpacing.lg),
+      Text(
+        AppStrings.homePrivacyFooter,
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: DesignTokens.slate600,
+          height: 1.4,
+        ),
+      ),
     ];
 
     return Scaffold(
