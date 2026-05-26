@@ -2,10 +2,24 @@ import 'package:flutter/material.dart';
 
 import 'l10n/app_strings.dart';
 import 'screens/home_screen.dart';
+import 'services/app_distribution_update.dart';
 import 'theme/app_theme.dart';
 
-final class MusicTheoryApp extends StatelessWidget {
+final class MusicTheoryApp extends StatefulWidget {
   const MusicTheoryApp({super.key});
+
+  @override
+  State<MusicTheoryApp> createState() => _MusicTheoryAppState();
+}
+
+final class _MusicTheoryAppState extends State<MusicTheoryApp> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AppDistributionUpdate.checkFromApp();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,3 +45,4 @@ final class MusicTheoryApp extends StatelessWidget {
     );
   }
 }
+
