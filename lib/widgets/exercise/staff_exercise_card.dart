@@ -55,6 +55,7 @@ final class PlacementStaffCard extends StatelessWidget {
     this.wrongHighlightSlot,
     this.correctHighlightSlot,
     this.expandToFill = false,
+    this.tapHint,
   });
 
   final List<NotationPitch> pool;
@@ -65,10 +66,12 @@ final class PlacementStaffCard extends StatelessWidget {
   final int? wrongHighlightSlot;
   final int? correctHighlightSlot;
   final bool expandToFill;
+  final String? tapHint;
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final hint = tapHint ?? AppStrings.tapStaff;
     final slots = pool.map((e) => e.staffSlot);
     final staff = AbsorbPointer(
       absorbing: feedback,
@@ -89,7 +92,9 @@ final class PlacementStaffCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            AppStrings.tapStaff,
+            hint,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: t.bodySmall?.copyWith(color: DesignTokens.slate400),
           ),
           const SizedBox(height: AppSpacing.sm),

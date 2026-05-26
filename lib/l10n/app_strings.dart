@@ -1,9 +1,20 @@
 abstract final class AppStrings {
   static const appTitle = 'Müzik Teorisi';
   static const homeSubtitle = 'Sol anahtar, doğal notalarla pratik.';
+  static const homeSectionStaff = 'Porte & okuma';
+  static const homeSectionTheory = 'Müzik teorisi';
+  static const homeSectionGuitar = 'Gitar';
+  static const homeSectionTools = 'Ayarlar';
+  static const homeStreakNone = 'Bugün pratik yok — bir deneme ile seriyi başlat';
+  static String homeStreakDays(int n) => '$n günlük pratik serisi';
+  static const homeGlobalAccuracy = 'Genel doğruluk';
+  static const homeMicBadge = 'Mikrofon';
+  static String sessionScore(int correct, int total) =>
+      'Puan: $correct/$total';
   static const placementTitle = 'Portede yerleştir';
   static const placementDesc =
       'Hedef notayı portede doğru çizgi veya aralığa yerleştirip onayla.';
+  static const placementTapHint = 'Dokun veya sürükle';
   static const mcqTitle = 'Notayı tanı';
   static const mcqDesc = 'Portede gösterilen notanın adını seç.';
   static const statsTitle = 'İstatistikler';
@@ -75,6 +86,19 @@ abstract final class AppStrings {
   static const goalMinMidi = 'En düşük nota';
   static const goalMaxMidi = 'En yüksek nota';
   static const goalSave = 'Kaydet';
+  static const appUpdateSection = 'Uygulama güncellemesi';
+  static const appUpdateHint =
+      'Firebase dağıtımındaki son sürümü kontrol eder. İlk seferde Google hesabınla tester girişi istenir; e-posta gerekmez.';
+  static const appUpdateCheck = 'Güncellemeyi kontrol et';
+  static const appUpdateUpToDate = 'Uygulama güncel.';
+  static const appUpdateStarted =
+      'Yeni sürüm bulundu — indirme ve kurulum başladı.';
+  static const appUpdateDebugOnly =
+      'Uygulama içi güncelleme yalnızca release build ile çalışır (CI APK).';
+  static const appUpdateFirebaseMissing =
+      'Firebase yapılandırması eksik. android/app/google-services.json ekle (docs/CI_CD_FIREBASE.md).';
+  static const appUpdateFailed =
+      'Güncelleme kontrolü başarısız. Tester hesabı ve internet bağlantısını kontrol et.';
   static const goalNone = 'Hedef yok';
   static const goalActive = 'Aktif hedef';
   static const goalCompletedTitle = 'Hedef tamamlandı';

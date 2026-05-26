@@ -24,8 +24,11 @@ abstract final class AppSpacing {
   static const double sectionGap = xl;
   static const double listItemGap = sm;
   static const double staffPaintWidthScale = 1.04;
-  static const double staffAreaHeight = 400;
+  /// Portede yerleştir: parmakla işaretleme için minimum yükseklik.
+  static const double staffAreaHeight = 440;
   static const double mcqStaffAreaHeight = 360;
+
+  static const double practiceActionHeight = 48;
 }
 
 abstract final class AppRadii {

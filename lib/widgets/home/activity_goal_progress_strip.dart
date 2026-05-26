@@ -4,46 +4,85 @@ import '../../l10n/app_strings.dart';
 import '../../services/goal_progress_snapshot.dart';
 import '../../theme/design_tokens.dart';
 
-/// Ana ekran etkinlik kartında kompakt üçlü ilerleme.
+enum GoalProgressVariant { full, landingDual, homeCompact }
+
+/// Hedef ilerlemesi: tam (3 çubuk), landing (2), ana grid (1).
 final class ActivityGoalProgressStrip extends StatelessWidget {
-  const ActivityGoalProgressStrip({super.key, required this.snapshot});
+  const ActivityGoalProgressStrip({
+    super.key,
+    required this.snapshot,
+    this.variant = GoalProgressVariant.full,
+  });
 
   final GoalProgressSnapshot snapshot;
+  final GoalProgressVariant variant;
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
     final s = snapshot;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _MiniBar(
-          label: AppStrings.goalProgressAttempts,
+    switch (variant) {
+      case GoalProgressVariant.homeCompact:
+        return _MiniBar(
+          label: AppStrings.goalActive,
           detail: '${s.attemptsDone}/${s.attemptTarget}',
           progress: s.attemptProgress,
           color: DesignTokens.blue500,
           textStyle: t.labelSmall,
-        ),
-        const SizedBox(height: 6),
-        _MiniBar(
-          label: AppStrings.goalProgressAccuracy,
-          detail: '${s.accuracyPercent}%/${s.accuracyTargetPercent}%',
-          progress: s.accuracyProgress,
-          color: DesignTokens.green400,
-          textStyle: t.labelSmall,
-        ),
-        const SizedBox(height: 6),
-        _MiniBar(
-          label: AppStrings.goalProgressSpeed,
-          detail: s.avgLatencyMs == null
-              ? '—'
-              : '${s.avgLatencyMs}≤${s.maxAvgLatencyTargetMs}ms',
-          progress: s.speedProgress,
-          color: DesignTokens.violet400,
-          textStyle: t.labelSmall,
-        ),
-      ],
-    );
+        );
+      case GoalProgressVariant.landingDual:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _MiniBar(
+              label: AppStrings.goalProgressAttempts,
+              detail: '${s.attemptsDone}/${s.attemptTarget}',
+              progress: s.attemptProgress,
+              color: DesignTokens.blue500,
+              textStyle: t.labelSmall,
+            ),
+            const SizedBox(height: 6),
+            _MiniBar(
+              label: AppStrings.goalProgressAccuracy,
+              detail: '${s.accuracyPercent}%/${s.accuracyTargetPercent}%',
+              progress: s.accuracyProgress,
+              color: DesignTokens.green400,
+              textStyle: t.labelSmall,
+            ),
+          ],
+        );
+      case GoalProgressVariant.full:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _MiniBar(
+              label: AppStrings.goalProgressAttempts,
+              detail: '${s.attemptsDone}/${s.attemptTarget}',
+              progress: s.attemptProgress,
+              color: DesignTokens.blue500,
+              textStyle: t.labelSmall,
+            ),
+            const SizedBox(height: 6),
+            _MiniBar(
+              label: AppStrings.goalProgressAccuracy,
+              detail: '${s.accuracyPercent}%/${s.accuracyTargetPercent}%',
+              progress: s.accuracyProgress,
+              color: DesignTokens.green400,
+              textStyle: t.labelSmall,
+            ),
+            const SizedBox(height: 6),
+            _MiniBar(
+              label: AppStrings.goalProgressSpeed,
+              detail: s.avgLatencyMs == null
+                  ? '—'
+                  : '${s.avgLatencyMs}≤${s.maxAvgLatencyTargetMs}ms',
+              progress: s.speedProgress,
+              color: DesignTokens.violet400,
+              textStyle: t.labelSmall,
+            ),
+          ],
+        );
+    }
   }
 }
 

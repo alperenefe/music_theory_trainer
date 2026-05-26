@@ -37,6 +37,18 @@ void main() {
     expect(deg.first.midi, 67);
   });
 
+  test('pentatonik majör 5 derece', () {
+    final deg = MusicScale.spelledDegrees(60, ScaleMode.pentatonicMajor);
+    expect(deg.length, 5);
+    expect(deg.map((d) => d.label).toList(), [
+      'Do',
+      'Re',
+      'Mi',
+      'Sol',
+      'La',
+    ]);
+  });
+
   test('palet tüm diyez bemol adlarını içerir', () {
     expect(TheoryNoteLabels.chromaticPalette, contains('Si bemol'));
     expect(TheoryNoteLabels.chromaticPalette, contains('Fa diyez'));

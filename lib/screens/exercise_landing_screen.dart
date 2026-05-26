@@ -126,6 +126,7 @@ final class _ExerciseLandingScreenState extends State<ExerciseLandingScreen> {
                             const SizedBox(height: AppSpacing.md),
                             ActivityGoalProgressStrip(
                               snapshot: _goalProgress!,
+                              variant: GoalProgressVariant.landingDual,
                             ),
                           ],
                           const SizedBox(height: AppSpacing.lg),

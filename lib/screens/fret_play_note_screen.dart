@@ -13,7 +13,9 @@ import '../services/practice_history.dart';
 import '../services/target_picker.dart';
 import '../services/guitar_audio_service.dart';
 import '../services/practice_prefs_repository.dart';
+import '../services/practice_session_tracker.dart';
 import '../services/stats_repository.dart';
+import '../widgets/exercise/exercise_screen_top_bar.dart';
 import '../theme/app_spacing.dart';
 import '../theme/design_tokens.dart';
 import '../utils/guitar_note_pool.dart';
@@ -48,6 +50,7 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
   final _prefsRepo = PracticePrefsRepository();
   final _audio = GuitarAudioService.instance;
   final _mic = MicPitchSession();
+  final _session = PracticeSessionTracker();
   late List<GuitarNote> _allNotes;
   List<PracticeAttempt> _history = [];
 
@@ -368,6 +371,7 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
     if (!mounted) {
       return;
     }
+    _session.record(true);
     setState(() {
       _history = PracticeHistory.forExercise(h, AppStrings.exerciseGuitarPlay);
       _lastOk = true;
@@ -414,41 +418,23 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Padding(
-                      padding: AppSpacing.screenH.copyWith(top: AppSpacing.sm),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            icon: const Icon(Icons.arrow_back_rounded),
-                            color: DesignTokens.slate200,
-                          ),
-                          const SizedBox(width: AppSpacing.xs),
-                          Expanded(
-                            child: Text(
-                              AppStrings.guitarPlayTitle,
-                              style: t.titleLarge?.copyWith(
-                                color: DesignTokens.white,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                          if (_listening)
-                            IconButton(
+                    ExerciseScreenTopBar(
+                      title: AppStrings.guitarPlayTitle,
+                      sessionCorrect: _session.correct,
+                      sessionTotal: _session.total,
+                      trailing: _listening
+                          ? IconButton(
                               onPressed: _feedback ? null : _stopMic,
                               tooltip: AppStrings.guitarPlayStop,
                               icon: const Icon(Icons.mic_off_rounded),
                               color: DesignTokens.slate200,
                             )
-                          else
-                            IconButton(
+                          : IconButton(
                               onPressed: _feedback ? null : _tryStartMic,
                               tooltip: AppStrings.tunerMicResume,
                               icon: const Icon(Icons.mic_rounded),
                               color: DesignTokens.blue500,
                             ),
-                        ],
-                      ),
                     ),
                     Expanded(
                       child: ListView(

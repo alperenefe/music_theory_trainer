@@ -7,6 +7,7 @@ import '../models/practice_attempt.dart';
 import '../services/goal_tracker.dart';
 import '../services/guitar_audio_service.dart';
 import '../services/practice_prefs_repository.dart';
+import '../services/practice_session_tracker.dart';
 import '../services/stats_repository.dart';
 import '../theory/music_chord.dart';
 import '../theme/app_spacing.dart';
@@ -39,6 +40,7 @@ final class _ChordMcqScreenState extends State<ChordMcqScreen> {
   final _repo = StatsRepository();
   final _prefsRepo = PracticePrefsRepository();
   final _audio = GuitarAudioService.instance;
+  final _session = PracticeSessionTracker();
 
   late _ChordQMode _mode;
   late int _rootMidi;
@@ -114,6 +116,7 @@ final class _ChordMcqScreenState extends State<ChordMcqScreen> {
     if (!mounted) {
       return;
     }
+    _session.record(ok);
     setState(() {
       _picked = label;
       _feedback = true;
@@ -157,7 +160,11 @@ final class _ChordMcqScreenState extends State<ChordMcqScreen> {
               child: SafeArea(
                 child: Column(
                   children: [
-                    const ExerciseScreenTopBar(title: AppStrings.chordTitle),
+                    ExerciseScreenTopBar(
+                      title: AppStrings.chordTitle,
+                      sessionCorrect: _session.correct,
+                      sessionTotal: _session.total,
+                    ),
                     Expanded(
                       child: ListView(
                         padding: AppSpacing.screenHV,

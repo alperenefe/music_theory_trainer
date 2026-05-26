@@ -19,6 +19,7 @@ final class NotationPitch {
   /// Gitar partisyonu: portede yazılan = duyulan + 12.
   static const int guitarWrittenTransposition = 12;
 
+  /// Bilimsel oktav numarası: Do4 (MIDI 60) → 4; oktav sınırı her Do’da yükselir.
   static int octaveNumber(int midi) => (midi ~/ 12) - 1;
 
   /// Slot → yazılan MIDI (sol anahtarı konser pitch).

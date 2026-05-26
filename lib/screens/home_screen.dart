@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../config/home_route_catalog.dart';
+import '../config/home_section_catalog.dart';
 import '../l10n/app_strings.dart';
 import '../models/notation_pitch.dart';
 import '../models/practice_prefs.dart';
@@ -13,7 +14,9 @@ import '../models/practice_attempt.dart';
 import '../theme/app_spacing.dart';
 import '../theme/design_tokens.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
+import '../widgets/home/home_grid_card.dart';
 import '../widgets/home/home_route_card.dart';
+import '../widgets/home/home_stats_banner.dart';
 import '../widgets/loading/home_list_skeleton.dart';
 import '../widgets/onboarding/app_onboarding_dialog.dart';
 import '../widgets/text/section_header.dart';
@@ -94,9 +97,118 @@ final class _HomeScreenState extends State<HomeScreen> {
     await _refresh();
   }
 
+  GoalProgressSnapshot? _progressFor(HomeRouteSpec spec) {
+    final gk = spec.goalKind;
+    if (gk == null) {
+      return null;
+    }
+    return GoalProgressSnapshot.forKind(
+      kind: gk,
+      prefs: _prefs,
+      all: _attempts,
+    );
+  }
+
+  Widget _sectionHeader(HomeSectionSpec section) {
+    final t = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.lg, bottom: AppSpacing.sm),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 20,
+            decoration: BoxDecoration(
+              color: section.accent,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            section.title,
+            style: t.titleMedium?.copyWith(
+              color: DesignTokens.white,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _gridCard(HomeRouteSpec spec) {
+    return HomeGridCard(
+      index: spec.index,
+      icon: spec.icon,
+      title: spec.title,
+      subtitle: spec.subtitle,
+      accent: spec.accent,
+      goalProgress: _progressFor(spec),
+      micBadge: homeRouteShowsMicBadge(spec),
+      onTap: () => _openRoute(spec),
+    );
+  }
+
+  Widget _fullWidthCard(HomeRouteSpec spec) {
+    return HomeRouteCard(
+      index: spec.index,
+      icon: spec.icon,
+      title: spec.title,
+      subtitle: spec.subtitle,
+      accent: spec.accent,
+      showStartLink: spec.showStartLink,
+      goalProgress: _progressFor(spec),
+      onTap: () => _openRoute(spec),
+    );
+  }
+
+  List<Widget> _buildSections() {
+    final out = <Widget>[];
+    for (final section in homeSectionSpecs) {
+      out.add(_sectionHeader(section));
+      final gridSpecs = <HomeRouteSpec>[];
+      final fullSpecs = <HomeRouteSpec>[];
+      for (final idx in section.routeIndices) {
+        final spec = homeRouteByIndex(idx);
+        if (section.fullWidthIndices.contains(idx)) {
+          fullSpecs.add(spec);
+        } else {
+          gridSpecs.add(spec);
+        }
+      }
+      for (var i = 0; i < gridSpecs.length; i += 2) {
+        final left = gridSpecs[i];
+        final right = i + 1 < gridSpecs.length ? gridSpecs[i + 1] : null;
+        out.add(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: _gridCard(left)),
+              if (right != null) ...[
+                const SizedBox(width: AppSpacing.cardGap),
+                Expanded(child: _gridCard(right)),
+              ] else
+                const Expanded(child: SizedBox.shrink()),
+            ],
+          ),
+        );
+        if (i + 2 < gridSpecs.length) {
+          out.add(const SizedBox(height: AppSpacing.cardGap));
+        }
+      }
+      for (final spec in fullSpecs) {
+        if (gridSpecs.isNotEmpty) {
+          out.add(const SizedBox(height: AppSpacing.cardGap));
+        }
+        out.add(_fullWidthCard(spec));
+      }
+    }
+    return out;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final children = <Widget>[
+    final header = <Widget>[
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -150,35 +262,10 @@ final class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       const SizedBox(height: AppSpacing.sectionGap),
+      HomeStatsBanner(attempts: _attempts),
+      const SizedBox(height: AppSpacing.sectionGap),
+      ..._buildSections(),
     ];
-
-    for (var i = 0; i < homeRouteSpecs.length; i++) {
-      final spec = homeRouteSpecs[i];
-      if (i > 0) {
-        children.add(const SizedBox(height: AppSpacing.cardGap));
-      }
-      GoalProgressSnapshot? progress;
-      final gk = spec.goalKind;
-      if (gk != null) {
-        progress = GoalProgressSnapshot.forKind(
-          kind: gk,
-          prefs: _prefs,
-          all: _attempts,
-        );
-      }
-      children.add(
-        HomeRouteCard(
-          index: spec.index,
-          icon: spec.icon,
-          title: spec.title,
-          subtitle: spec.subtitle,
-          accent: spec.accent,
-          showStartLink: spec.showStartLink,
-          goalProgress: progress,
-          onTap: () => _openRoute(spec),
-        ),
-      );
-    }
 
     return Scaffold(
       body: MeshGradientBackdrop(
@@ -191,7 +278,7 @@ final class _HomeScreenState extends State<HomeScreen> {
                     SliverPadding(
                       padding: AppSpacing.screenHV,
                       sliver: SliverList(
-                        delegate: SliverChildListDelegate(children),
+                        delegate: SliverChildListDelegate(header),
                       ),
                     ),
                   ],

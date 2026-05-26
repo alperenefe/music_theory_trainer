@@ -7,6 +7,7 @@ import '../models/practice_attempt.dart';
 import '../services/goal_tracker.dart';
 import '../services/guitar_audio_service.dart';
 import '../services/practice_prefs_repository.dart';
+import '../services/practice_session_tracker.dart';
 import '../services/stats_repository.dart';
 import '../theory/interval_question.dart';
 import '../theme/app_spacing.dart';
@@ -37,6 +38,7 @@ final class _IntervalMcqScreenState extends State<IntervalMcqScreen> {
   final _repo = StatsRepository();
   final _prefsRepo = PracticePrefsRepository();
   final _audio = GuitarAudioService.instance;
+  final _session = PracticeSessionTracker();
   late IntervalQuestion _q;
   var _t0 = 0;
   var _feedback = false;
@@ -81,6 +83,7 @@ final class _IntervalMcqScreenState extends State<IntervalMcqScreen> {
     if (!mounted) {
       return;
     }
+    _session.record(ok);
     setState(() {
       _picked = label;
       _feedback = true;
@@ -122,7 +125,11 @@ final class _IntervalMcqScreenState extends State<IntervalMcqScreen> {
               child: SafeArea(
                 child: Column(
                   children: [
-                    const ExerciseScreenTopBar(title: AppStrings.intervalTitle),
+                    ExerciseScreenTopBar(
+                      title: AppStrings.intervalTitle,
+                      sessionCorrect: _session.correct,
+                      sessionTotal: _session.total,
+                    ),
                     Expanded(
                       child: ListView(
                         padding: AppSpacing.screenHV,

@@ -14,7 +14,9 @@ import '../services/practice_history.dart';
 import '../services/target_picker.dart';
 import '../services/guitar_audio_service.dart';
 import '../services/practice_prefs_repository.dart';
+import '../services/practice_session_tracker.dart';
 import '../services/stats_repository.dart';
+import '../widgets/exercise/exercise_screen_top_bar.dart';
 import '../theme/app_spacing.dart';
 import '../theme/design_tokens.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
@@ -43,6 +45,7 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
   final _repo = StatsRepository();
   final _prefsRepo = PracticePrefsRepository();
   final _audio = GuitarAudioService.instance;
+  final _session = PracticeSessionTracker();
   late final List<GuitarNote> _allNotes = GuitarNotePool.forMidiRange(
     minMidi: widget.poolMinMidi,
     maxMidi: widget.poolMaxMidi,
@@ -114,6 +117,7 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
     await _repo.append(attempt);
     final h = await _repo.load();
     if (!mounted) return;
+    _session.record(ok);
     setState(() {
       _history = PracticeHistory.forExercise(h, AppStrings.exerciseGuitarMcq);
       _picked = label;
@@ -161,27 +165,10 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Padding(
-                      padding: AppSpacing.screenH.copyWith(top: AppSpacing.sm),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            icon: const Icon(Icons.arrow_back_rounded),
-                            color: DesignTokens.slate200,
-                          ),
-                          const SizedBox(width: AppSpacing.xs),
-                          Expanded(
-                            child: Text(
-                              AppStrings.guitarMcqTitle,
-                              style: t.titleLarge?.copyWith(
-                                color: DesignTokens.white,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                    ExerciseScreenTopBar(
+                      title: AppStrings.guitarMcqTitle,
+                      sessionCorrect: _session.correct,
+                      sessionTotal: _session.total,
                     ),
                     Expanded(
                       child: ListView(

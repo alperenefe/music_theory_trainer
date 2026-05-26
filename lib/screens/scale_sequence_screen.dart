@@ -8,6 +8,7 @@ import '../models/practice_attempt.dart';
 import '../services/goal_tracker.dart';
 import '../services/guitar_audio_service.dart';
 import '../services/practice_prefs_repository.dart';
+import '../services/practice_session_tracker.dart';
 import '../services/stats_repository.dart';
 import '../theory/music_scale.dart';
 import '../theory/theory_note_labels.dart';
@@ -39,6 +40,7 @@ final class _ScaleSequenceScreenState extends State<ScaleSequenceScreen> {
   final _prefsRepo = PracticePrefsRepository();
   final _audio = GuitarAudioService.instance;
   final _stopwatch = Stopwatch();
+  final _session = PracticeSessionTracker();
 
   late int _rootMidi;
   late ScaleMode _mode;
@@ -70,7 +72,7 @@ final class _ScaleSequenceScreenState extends State<ScaleSequenceScreen> {
     _stopwatch.reset();
     _rootMidi = widget.poolMinMidi +
         _rnd.nextInt(max(1, widget.poolMaxMidi - widget.poolMinMidi + 1));
-    _mode = _rnd.nextBool() ? ScaleMode.major : ScaleMode.naturalMinor;
+    _mode = ScaleMode.values[_rnd.nextInt(ScaleMode.values.length)];
     _degrees = MusicScale.spelledDegrees(_rootMidi, _mode);
     _pickedLabels.clear();
     _step = 0;
@@ -143,6 +145,7 @@ final class _ScaleSequenceScreenState extends State<ScaleSequenceScreen> {
     if (!mounted) {
       return;
     }
+    _session.record(correct);
     setState(() {
       _feedback = correct;
       _lastOk = correct;
@@ -190,7 +193,11 @@ final class _ScaleSequenceScreenState extends State<ScaleSequenceScreen> {
               child: SafeArea(
                 child: Column(
                   children: [
-                    const ExerciseScreenTopBar(title: AppStrings.scaleTitle),
+                    ExerciseScreenTopBar(
+                      title: AppStrings.scaleTitle,
+                      sessionCorrect: _session.correct,
+                      sessionTotal: _session.total,
+                    ),
                     Expanded(
                       child: ListView(
                         padding: AppSpacing.screenHV,
@@ -246,34 +253,7 @@ final class _ScaleSequenceScreenState extends State<ScaleSequenceScreen> {
                           ),
                           if (_pickedLabels.isNotEmpty) ...[
                             const SizedBox(height: AppSpacing.md),
-                            Text(
-                              AppStrings.scalePickedSoFar,
-                              style: t.labelMedium?.copyWith(
-                                color: DesignTokens.slate400,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            Wrap(
-                              spacing: AppSpacing.xs,
-                              runSpacing: AppSpacing.xs,
-                              children: [
-                                for (var i = 0; i < _pickedLabels.length; i++)
-                                  Chip(
-                                    label: Text(
-                                      '${i + 1}. ${_pickedLabels[i]}',
-                                      style: t.labelLarge?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                    backgroundColor: DesignTokens.violet400
-                                        .withValues(alpha: 0.2),
-                                    side: BorderSide(
-                                      color: DesignTokens.violet400
-                                          .withValues(alpha: 0.5),
-                                    ),
-                                  ),
-                              ],
-                            ),
+                            _ScaleSequenceChipRow(labels: _pickedLabels),
                           ],
                           const SizedBox(height: AppSpacing.md),
                           Wrap(
@@ -310,6 +290,48 @@ final class _ScaleSequenceScreenState extends State<ScaleSequenceScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// ZIP: seçilen notalar ok ile sıralı chip.
+final class _ScaleSequenceChipRow extends StatelessWidget {
+  const _ScaleSequenceChipRow({required this.labels});
+
+  final List<String> labels;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    final chips = <Widget>[];
+    for (var i = 0; i < labels.length; i++) {
+      if (i > 0) {
+        chips.add(
+          Icon(
+            Icons.arrow_forward_rounded,
+            size: 16,
+            color: DesignTokens.slate500,
+          ),
+        );
+      }
+      chips.add(
+        Chip(
+          label: Text(
+            labels[i],
+            style: t.labelLarge?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          backgroundColor: DesignTokens.violet400.withValues(alpha: 0.22),
+          side: BorderSide(
+            color: DesignTokens.violet400.withValues(alpha: 0.55),
+          ),
+        ),
+      );
+    }
+    return Wrap(
+      spacing: AppSpacing.xs,
+      runSpacing: AppSpacing.xs,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: chips,
     );
   }
 }

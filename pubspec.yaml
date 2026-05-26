@@ -38,6 +38,8 @@ dependencies:
   flutter_detect_pitch:
     path: packages/flutter_detect_pitch
   permission_handler: ^12.0.1
+  firebase_app_distribution: ^1.2.5
+  firebase_core: ^4.9.0
 
 dev_dependencies:
   flutter_test:

@@ -7,6 +7,7 @@ import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
 import '../../widgets/text/section_header.dart';
 import 'goal_midi_range_card.dart';
+import '../../widgets/settings/app_update_card.dart';
 import 'goal_sound_switch_card.dart';
 import 'per_activity_goal_tile.dart';
 
@@ -105,6 +106,8 @@ final class GoalsScreenBody extends StatelessWidget {
                 soundEnabled: soundEnabled,
                 onChanged: onSoundChanged,
               ),
+              const SizedBox(height: AppSpacing.lg),
+              const AppUpdateCard(),
               const SizedBox(height: AppSpacing.xl),
               FilledButton(onPressed: onSave, child: Text(AppStrings.goalSave)),
             ],

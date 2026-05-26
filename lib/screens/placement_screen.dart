@@ -8,6 +8,7 @@ import '../models/practice_attempt.dart';
 import '../services/goal_tracker.dart';
 import '../services/practice_history.dart';
 import '../services/practice_prefs_repository.dart';
+import '../services/practice_session_tracker.dart';
 import '../services/stats_repository.dart';
 import '../services/target_picker.dart';
 import '../staff/staff_slot_offset.dart';
@@ -18,7 +19,6 @@ import '../widgets/background/mesh_gradient_backdrop.dart';
 import '../widgets/exercise/exercise_screen_top_bar.dart';
 import '../widgets/exercise/feedback_bottom_bar.dart';
 import '../widgets/exercise/staff_exercise_card.dart';
-import '../widgets/text/section_header.dart';
 import 'goal_completion_screen.dart';
 
 final class PlacementScreen extends StatefulWidget {
@@ -34,6 +34,7 @@ final class _PlacementScreenState extends State<PlacementScreen> {
   final _rnd = Random();
   final _repo = StatsRepository();
   final _prefsRepo = PracticePrefsRepository();
+  final _session = PracticeSessionTracker();
   var _loading = true;
   List<PracticeAttempt> _history = [];
   late NotationPitch _target;
@@ -41,8 +42,6 @@ final class _PlacementScreenState extends State<PlacementScreen> {
   var _t0 = 0;
   var _feedback = false;
   var _lastOk = false;
-  String? _wrongYourAnswer;
-  String? _wrongCorrectAnswer;
   String? _slotOffsetHint;
 
   @override
@@ -70,8 +69,6 @@ final class _PlacementScreenState extends State<PlacementScreen> {
       _slot = null;
       _t0 = DateTime.now().millisecondsSinceEpoch;
       _feedback = false;
-      _wrongYourAnswer = null;
-      _wrongCorrectAnswer = null;
       _slotOffsetHint = null;
     });
   }
@@ -116,20 +113,17 @@ final class _PlacementScreenState extends State<PlacementScreen> {
     if (!mounted) {
       return;
     }
+    _session.record(ok);
     setState(() {
       _history = PracticeHistory.forExercise(h, AppStrings.exercisePlacement);
       _lastOk = ok;
       _feedback = true;
       if (!ok) {
-        _wrongYourAnswer = NotationPitch.displayLabelForSlot(_slot!);
-        _wrongCorrectAnswer = _target.displayTurkish;
         _slotOffsetHint = StaffSlotOffset.describe(
           correctSlot: _target.staffSlot,
           userSlot: _slot!,
         );
       } else {
-        _wrongYourAnswer = null;
-        _wrongCorrectAnswer = null;
         _slotOffsetHint = null;
       }
     });
@@ -151,94 +145,100 @@ final class _PlacementScreenState extends State<PlacementScreen> {
     }
   }
 
+  Widget _bottomActions(BuildContext context) {
+    if (_feedback) {
+      return FeedbackBottomBar(
+        show: true,
+        correct: _lastOk,
+        onNext: _newRound,
+        placementOffsetHint: _slotOffsetHint,
+        style: FeedbackBottomBarStyle.placementCompact,
+        embedded: true,
+      );
+    }
+    return SizedBox(
+      width: double.infinity,
+      height: AppSpacing.practiceActionHeight,
+      child: FilledButton(
+        onPressed: _submit,
+        child: Text(AppStrings.confirm),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+    final t = Theme.of(context).textTheme;
     return Scaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: MeshGradientBackdrop(
-              child: SafeArea(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const ExerciseScreenTopBar(
-                      title: AppStrings.placementTitle,
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: AppSpacing.screenHV,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                SectionHeader(
-                                  title: AppStrings.placementDesc,
-                                  subtitle: _target.displayTurkish,
-                                  subtitleStyle: Theme.of(context)
-                                      .textTheme
-                                      .headlineSmall
-                                      ?.copyWith(
-                                        color: DesignTokens.white,
-                                        fontWeight: FontWeight.w800,
-                                        height: 1.2,
-                                        fontSize: 30,
-                                        letterSpacing: -0.5,
-                                      ),
-                                ),
-                                const SizedBox(height: AppSpacing.sm),
-                                Expanded(
-                                  child: PlacementStaffCard(
-                                    expandToFill: true,
-                                    pool: widget.pool,
-                                    notes: _staffNotes(),
-                                    highlightSlot: _feedback ? null : _slot,
-                                    feedback: _feedback,
-                                    onSlot: (s) {
-                                      if (_feedback) {
-                                        return;
-                                      }
-                                      if (_slot != s) {
-                                        setState(() => _slot = s);
-                                      }
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(height: AppSpacing.sm),
-                                FilledButton(
-                                  onPressed: _feedback ? null : _submit,
-                                  child: Text(AppStrings.confirm),
-                                ),
-                                const SizedBox(height: 148),
-                              ],
-                            ),
-                            Align(
-                              alignment: Alignment.bottomCenter,
-                              child: FeedbackBottomBar(
-                                show: _feedback,
-                                correct: _lastOk,
-                                onNext: _newRound,
-                                wrongYourAnswer: _wrongYourAnswer,
-                                wrongCorrectAnswer: _wrongCorrectAnswer,
-                                placementOffsetHint: _slotOffsetHint,
-                              ),
-                            ),
-                          ],
+      body: MeshGradientBackdrop(
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ExerciseScreenTopBar(
+                title: AppStrings.placementTitle,
+                sessionCorrect: _session.correct,
+                sessionTotal: _session.total,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        '${AppStrings.targetLabel}: ${_target.displayTurkish}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: t.headlineSmall?.copyWith(
+                          color: DesignTokens.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 26,
+                          height: 1.15,
+                          letterSpacing: -0.4,
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: AppSpacing.sm),
+                      Expanded(
+                        child: PlacementStaffCard(
+                          expandToFill: true,
+                          tapHint: AppStrings.placementTapHint,
+                          pool: widget.pool,
+                          notes: _staffNotes(),
+                          highlightSlot: _feedback ? null : _slot,
+                          feedback: _feedback,
+                          onSlot: (s) {
+                            if (_feedback) {
+                              return;
+                            }
+                            if (_slot != s) {
+                              setState(() => _slot = s);
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      SafeArea(
+                        top: false,
+                        minimum: const EdgeInsets.only(bottom: AppSpacing.xs),
+                        child: _bottomActions(context),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

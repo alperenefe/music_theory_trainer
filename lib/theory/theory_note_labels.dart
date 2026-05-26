@@ -65,6 +65,7 @@ abstract final class TheoryNoteLabels {
     if (!withOctave) {
       return name;
     }
+    // ISO / bilimsel: her oktav Do (C) ile başlar; orta do (MIDI 60) = 4. oktav.
     return '$name (${NotationPitch.octaveNumber(midi)}. oktav)';
   }
 

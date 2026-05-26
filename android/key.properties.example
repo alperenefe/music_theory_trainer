@@ -1,0 +1,7 @@
+# Kopyala: android/key.properties (git'e ekleme)
+# Yerel release imza veya CI secret'lari ile ayni degerler.
+
+storePassword=YOUR_KEYSTORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=upload
+storeFile=upload-keystore.jks

@@ -4,11 +4,23 @@ import '../models/guitar_note.dart';
 import '../models/notation_pitch.dart';
 import '../models/practice_attempt.dart';
 
-/// Egzersiz hedefi: önce havuzdaki her nota en az bir kez (1 tur), sonra zayıflara ağırlık.
-///
-/// Tur uzunluğu = havuzdaki benzersiz nota sayısı; son [tur] deneme adillik ve
-/// istatistik penceresi olarak kullanılır (sabit 50/120 yok).
+/// Basit hedef seçimi:
+/// - Önce havuzdaki her nota en az bir kez (1 tur).
+/// - Sonra **son 2** o notaya ait denemeye göre doğruluk.
+/// - Yanlış varsa ağırlık 4, yalnızca yavaş doğruysa 2, iyi doğruysa 1 (zayıf/güçlü ≥ 4:1).
+/// - Aynı birimdeki notalar (ör. hepsi hızlı %100) tur penceresinde eşit görünür.
+/// - Ardışık aynı nota tekrar sorulmaz (başka aday varsa).
 abstract final class TargetPicker {
+  static const int _lastStatCount = 2;
+
+  /// Güçlü / orta (yavaş) / zayıf (son 2'de hata) / hiç görülmedi.
+  static const int _unitStrong = 1;
+  static const int _unitSlow = 2;
+  static const int _unitWeak = 4;
+  static const int _unitUnseen = 8;
+
+  static const int _baselineFloorMs = 350;
+
   static NotationPitch pick(
     Random rnd,
     List<NotationPitch> pool,
@@ -40,7 +52,6 @@ abstract final class TargetPicker {
     return same[rnd.nextInt(same.length)];
   }
 
-  /// Aynı pitch class için (gitar bul) — istatistik midi ile eşleşir.
   static GuitarNote pickGuitarNoteByPitchClass(
     Random rnd,
     List<GuitarNote> pool,
@@ -64,7 +75,7 @@ abstract final class TargetPicker {
     if (list.length == 1) {
       return list.first;
     }
-    return _weightedPick(
+    return _pick(
       rnd,
       list,
       history,
@@ -81,7 +92,7 @@ abstract final class TargetPicker {
     if (list.length == 1) {
       return list.first;
     }
-    return _weightedPick(
+    return _pick(
       rnd,
       list,
       history,
@@ -102,6 +113,53 @@ abstract final class TargetPicker {
     return history.sublist(history.length - tourLen);
   }
 
+  static List<PracticeAttempt> _lastAttemptsForKey<T>(
+    List<PracticeAttempt> history,
+    T key,
+    int maxCount, {
+    required bool Function(PracticeAttempt attempt, T key) matchHistory,
+  }) {
+    final out = <PracticeAttempt>[];
+    for (var i = history.length - 1; i >= 0 && out.length < maxCount; i--) {
+      if (matchHistory(history[i], key)) {
+        out.add(history[i]);
+      }
+    }
+    return out;
+  }
+
+  static int? _medianCorrectLatencyMs(List<PracticeAttempt> history) {
+    final ms =
+        history.where((a) => a.correct).map((a) => a.latencyMs).toList()
+          ..sort();
+    if (ms.isEmpty) {
+      return null;
+    }
+    return ms[ms.length ~/ 2];
+  }
+
+  /// Son [attempts] ortalaması, etkinlikteki doğru cevap medyanına göre yavaş mı?
+  static bool _slowInAttempts(
+    List<PracticeAttempt> attempts,
+    List<PracticeAttempt> history,
+  ) {
+    if (attempts.isEmpty) {
+      return false;
+    }
+    final median = _medianCorrectLatencyMs(history);
+    if (median == null) {
+      return false;
+    }
+    final med = median.clamp(_baselineFloorMs, 20000);
+    var sum = 0;
+    for (final a in attempts) {
+      sum += a.latencyMs;
+    }
+    final avg = sum / attempts.length;
+    final margin = max(400, (med * 0.12).round());
+    return avg > med + margin;
+  }
+
   static bool _poolTourComplete<T>(
     List<T> keys,
     List<PracticeAttempt> history, {
@@ -115,125 +173,151 @@ abstract final class TargetPicker {
     return true;
   }
 
-  static T _weightedPick<T>(
+  static int _weightUnit<T>(
+    T key,
+    List<T> keys,
+    List<PracticeAttempt> history,
+    List<PracticeAttempt> recentTour, {
+    required bool Function(PracticeAttempt attempt, T key) matchHistory,
+  }) {
+    final ever = history.any((a) => matchHistory(a, key));
+    if (!ever) {
+      return _unitUnseen;
+    }
+
+    final tourComplete = _poolTourComplete(
+      keys,
+      history,
+      matchHistory: matchHistory,
+    );
+    if (!tourComplete) {
+      var shown = 0;
+      for (final a in recentTour) {
+        if (matchHistory(a, key)) {
+          shown++;
+        }
+      }
+      if (shown == 0) {
+        return _unitWeak;
+      }
+      return _unitStrong;
+    }
+
+    final last = _lastAttemptsForKey(
+      history,
+      key,
+      _lastStatCount,
+      matchHistory: matchHistory,
+    );
+    if (last.isEmpty) {
+      return _unitStrong;
+    }
+    if (last.any((a) => !a.correct)) {
+      return _unitWeak;
+    }
+    if (_slowInAttempts(last, history)) {
+      return _unitSlow;
+    }
+    return _unitStrong;
+  }
+
+  static double _weight<T>(
+    T key,
+    List<T> keys,
+    List<PracticeAttempt> history,
+    List<PracticeAttempt> recentTour, {
+    required bool Function(PracticeAttempt attempt, T key) matchHistory,
+  }) {
+    final unit = _weightUnit(
+      key,
+      keys,
+      history,
+      recentTour,
+      matchHistory: matchHistory,
+    );
+
+    if (unit == _unitUnseen) {
+      return unit.toDouble();
+    }
+
+    if (!_poolTourComplete(keys, history, matchHistory: matchHistory)) {
+      var shown = 0;
+      for (final a in recentTour) {
+        if (matchHistory(a, key)) {
+          shown++;
+        }
+      }
+      if (unit == _unitUnseen) {
+        return _unitUnseen.toDouble();
+      }
+      final base = unit == _unitWeak ? _unitWeak.toDouble() : 1.0;
+      return (base / (1.0 + shown * 1.2)).clamp(0.25, 8.0);
+    }
+
+    var w = unit.toDouble();
+
+    // Aynı performans (birim 1): tur içinde eşit görünme.
+    if (unit == _unitStrong) {
+      var shown = 0;
+      for (final a in recentTour) {
+        if (matchHistory(a, key)) {
+          shown++;
+        }
+      }
+      w /= 1.0 + shown * 0.55;
+    }
+
+    return w.clamp(0.15, 12.0);
+  }
+
+  static T _pick<T>(
     Random rnd,
     List<T> keys,
     List<PracticeAttempt> history, {
     required bool Function(PracticeAttempt attempt, T key) matchHistory,
   }) {
     final tourLen = keys.length;
-    final recent = _lastTour(history, tourLen);
-    final tourComplete = _poolTourComplete(
-      keys,
-      history,
-      matchHistory: matchHistory,
-    );
-    final statsSlice = recent;
+    final recentTour = _lastTour(history, tourLen);
 
-    final recentCount = <T, int>{};
-    final lifetimeCount = <T, int>{};
-    for (final k in keys) {
-      recentCount[k] = 0;
-      lifetimeCount[k] = 0;
-    }
-    for (final a in recent) {
+    T? lastKey;
+    if (history.isNotEmpty) {
       for (final k in keys) {
-        if (matchHistory(a, k)) {
-          recentCount[k] = (recentCount[k] ?? 0) + 1;
-        }
-      }
-    }
-    for (final a in history) {
-      for (final k in keys) {
-        if (matchHistory(a, k)) {
-          lifetimeCount[k] = (lifetimeCount[k] ?? 0) + 1;
+        if (matchHistory(history.last, k)) {
+          lastKey = k;
+          break;
         }
       }
     }
 
-    var minRecent = recentCount.values.first;
-    for (final c in recentCount.values) {
-      if (c < minRecent) {
-        minRecent = c;
-      }
-    }
+    final eligible = keys.length > 1 && lastKey != null
+        ? keys.where((k) => k != lastKey).toList()
+        : keys;
 
-    final toursDone = tourLen > 0 ? history.length ~/ tourLen : 0;
-    final tierMul = 1.0 + toursDone.clamp(0, 20) * 0.028;
-
-    double weight(T key) {
-      final shown = recentCount[key] ?? 0;
-      final ever = lifetimeCount[key] ?? 0;
-
-      // Tur tamamlanmadan: hiç çıkmamış notalar öncelikli.
-      if (!tourComplete) {
-        if (ever == 0) {
-          return 8.0;
-        }
-        var w = 1.0 / (1.0 + shown * 1.5);
-        if (shown <= minRecent) {
-          w *= 2.0;
-        }
-        return w.clamp(0.2, 8.0);
-      }
-
-      // Tur bitti: son [tourLen] denemeye göre adillik + zayıflık.
-      var w = 1.0 / (1.0 + shown * 1.35);
-      if (shown <= minRecent + 1) {
-        w *= 1.55;
-      }
-
-      final rs = statsSlice.where((e) => matchHistory(e, key)).toList();
-      if (rs.length >= 2) {
-        var correct = 0;
-        var sumMs = 0;
-        for (final e in rs) {
-          sumMs += e.latencyMs;
-          if (e.correct) {
-            correct++;
-          }
-        }
-        final acc = correct / rs.length;
-        final errPart = (1.0 - acc) * 1.35;
-        final slowPart = (sumMs / rs.length / 4000.0).clamp(0.0, 1.0) * 0.75;
-        final weak = (errPart + slowPart).clamp(0.0, 2.4);
-        w *= 1.0 + weak * 0.62 * tierMul;
-
-        var missStreak = 0;
-        for (var i = rs.length - 1; i >= 0; i--) {
-          if (rs[i].correct) {
-            break;
-          }
-          missStreak++;
-        }
-        if (missStreak > 0) {
-          w *= pow(1.22, missStreak.clamp(0, 5)).toDouble();
-        }
-      } else if (rs.length == 1 && !rs.first.correct) {
-        w *= 1.35 * tierMul;
-      }
-
-      if (history.isNotEmpty &&
-          matchHistory(history.last, key) &&
-          !history.last.correct) {
-        w *= 1.28;
-      }
-
-      return w.clamp(0.12, 6.0);
-    }
-
-    final weights = keys.map(weight).toList();
+    final weights = eligible
+        .map(
+          (k) => _weight(
+            k,
+            keys,
+            history,
+            recentTour,
+            matchHistory: matchHistory,
+          ),
+        )
+        .toList();
     var sum = 0.0;
     for (final x in weights) {
       sum += x;
     }
+    if (sum <= 0) {
+      return eligible.first;
+    }
     var t = rnd.nextDouble() * sum;
-    for (var i = 0; i < keys.length; i++) {
+    for (var i = 0; i < eligible.length; i++) {
       t -= weights[i];
       if (t <= 0) {
-        return keys[i];
+        return eligible[i];
       }
     }
-    return keys.last;
+    return eligible.last;
   }
 }

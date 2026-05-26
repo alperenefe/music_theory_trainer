@@ -15,11 +15,13 @@ import '../services/practice_history.dart';
 import '../services/target_picker.dart';
 import '../services/guitar_audio_service.dart';
 import '../services/practice_prefs_repository.dart';
+import '../services/practice_session_tracker.dart';
 import '../services/stats_repository.dart';
 import '../theme/app_spacing.dart';
 import '../theme/design_tokens.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
 import '../widgets/cards/soft_card.dart';
+import '../widgets/exercise/exercise_screen_top_bar.dart';
 import '../widgets/exercise/feedback_bottom_bar.dart';
 import '../widgets/guitar/guitar_range_empty_body.dart';
 import '../widgets/text/section_header.dart';
@@ -44,6 +46,7 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
   final _repo = StatsRepository();
   final _prefsRepo = PracticePrefsRepository();
   final _audio = GuitarAudioService.instance;
+  final _session = PracticeSessionTracker();
   late List<GuitarNote> _allNotes;
   List<PracticeAttempt> _history = [];
   late GuitarNote _targetNote;
@@ -144,6 +147,7 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
     await _repo.append(attempt);
     final h = await _repo.load();
     if (!mounted) return;
+    _session.record(ok);
     setState(() {
       _history = PracticeHistory.forExercise(h, AppStrings.exerciseGuitarFind);
       _selected = note;
@@ -185,27 +189,10 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Padding(
-                      padding: AppSpacing.screenH.copyWith(top: AppSpacing.sm),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            icon: const Icon(Icons.arrow_back_rounded),
-                            color: DesignTokens.slate200,
-                          ),
-                          const SizedBox(width: AppSpacing.xs),
-                          Expanded(
-                            child: Text(
-                              AppStrings.guitarFindTitle,
-                              style: t.titleLarge?.copyWith(
-                                color: DesignTokens.white,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                    ExerciseScreenTopBar(
+                      title: AppStrings.guitarFindTitle,
+                      sessionCorrect: _session.correct,
+                      sessionTotal: _session.total,
                     ),
                     Expanded(
                       child: ListView(

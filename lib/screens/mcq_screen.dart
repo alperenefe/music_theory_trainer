@@ -8,6 +8,7 @@ import '../models/practice_attempt.dart';
 import '../services/goal_tracker.dart';
 import '../services/practice_history.dart';
 import '../services/practice_prefs_repository.dart';
+import '../services/practice_session_tracker.dart';
 import '../services/stats_repository.dart';
 import '../services/target_picker.dart';
 import '../theme/app_spacing.dart';
@@ -32,6 +33,7 @@ final class _McqScreenState extends State<McqScreen> {
   final _rnd = Random();
   final _repo = StatsRepository();
   final _prefsRepo = PracticePrefsRepository();
+  final _session = PracticeSessionTracker();
   var _loading = true;
   List<PracticeAttempt> _history = [];
   late NotationPitch _target;
@@ -101,6 +103,7 @@ final class _McqScreenState extends State<McqScreen> {
     if (!mounted) {
       return;
     }
+    _session.record(ok);
     setState(() {
       _history = PracticeHistory.forExercise(h, AppStrings.exerciseMcq);
       _picked = label;
@@ -147,7 +150,11 @@ final class _McqScreenState extends State<McqScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const ExerciseScreenTopBar(title: AppStrings.mcqTitle),
+                    ExerciseScreenTopBar(
+                      title: AppStrings.mcqTitle,
+                      sessionCorrect: _session.correct,
+                      sessionTotal: _session.total,
+                    ),
                     Expanded(
                       child: Padding(
                         padding: AppSpacing.screenHV,

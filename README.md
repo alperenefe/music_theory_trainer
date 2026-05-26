@@ -61,27 +61,25 @@ flutter test
 
 ---
 
-## Release APK
+## Otomatik dağıtım (önerilen)
+
+**İstediğinde** GitHub Actions’ta «Run workflow» ile APK derlenir ve **Firebase App Distribution** üzerinden telefona e-posta gider (`git push` tek başına dağıtmaz). Manuel indirme veya adb gerekmez.
+
+**Kurulum (bir kez):** [docs/CI_CD_FIREBASE.md](docs/CI_CD_FIREBASE.md) — Firebase projesi, service account, GitHub Secrets.
+
+Workflow: `.github/workflows/android-firebase-distribute.yml`
+
+---
+
+## Release APK (yerel, isteğe bağlı)
 
 ```bash
 flutter build apk --release
 ```
 
-Çıktı dosyası:
+Çıktı: `build/app/outputs/flutter-apk/app-release.apk`
 
-`build/app/outputs/flutter-apk/app-release.apk`
-
-USB ile kurulum:
-
-```bash
-adb install -r build/app/outputs/flutter-apk/app-release.apk
-```
-
-veya:
-
-```bash
-flutter install -d <cihaz_id>
-```
+Yerel imza: `android/key.properties.example` → `key.properties` + `upload-keystore.jks`.
 
 ---
 

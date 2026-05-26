@@ -1,6 +1,12 @@
 import 'theory_note_labels.dart';
 
-enum ScaleMode { major, naturalMinor }
+enum ScaleMode {
+  major,
+  naturalMinor,
+  harmonicMinor,
+  pentatonicMajor,
+  pentatonicMinor,
+}
 
 /// Bir gam derecesinin doğru yazımı (MIDI + etiket).
 final class ScaleDegree {
@@ -13,12 +19,28 @@ final class ScaleDegree {
 abstract final class MusicScale {
   static const List<int> majorSteps = [2, 2, 1, 2, 2, 2, 1];
   static const List<int> minorSteps = [2, 1, 2, 2, 1, 2, 2];
+  static const List<int> harmonicMinorSteps = [2, 1, 2, 2, 1, 3, 1];
+  static const List<int> pentaMajorSteps = [2, 2, 3, 2];
+  static const List<int> pentaMinorSteps = [3, 2, 2, 3];
 
-  static String modeName(ScaleMode m) =>
-      m == ScaleMode.major ? 'majör' : 'doğal minör';
+  static String modeName(ScaleMode m) => switch (m) {
+        ScaleMode.major => 'majör',
+        ScaleMode.naturalMinor => 'doğal minör',
+        ScaleMode.harmonicMinor => 'armonik minör',
+        ScaleMode.pentatonicMajor => 'pentatonik majör',
+        ScaleMode.pentatonicMinor => 'pentatonik minör',
+      };
+
+  static List<int> _stepsFor(ScaleMode mode) => switch (mode) {
+        ScaleMode.major => majorSteps,
+        ScaleMode.naturalMinor => minorSteps,
+        ScaleMode.harmonicMinor => harmonicMinorSteps,
+        ScaleMode.pentatonicMajor => pentaMajorSteps,
+        ScaleMode.pentatonicMinor => pentaMinorSteps,
+      };
 
   static List<int> degrees(int rootMidi, ScaleMode mode) {
-    final steps = mode == ScaleMode.major ? majorSteps : minorSteps;
+    final steps = _stepsFor(mode);
     final out = <int>[rootMidi];
     var cur = rootMidi;
     for (final s in steps) {
@@ -70,6 +92,14 @@ abstract final class MusicScale {
 
   static List<String> spelledLabels(int rootMidi, ScaleMode mode) {
     final pc = rootMidi % 12;
+    if (mode == ScaleMode.pentatonicMajor) {
+      final maj = List<String>.from(_majorSpellingsByPc[pc]!);
+      return [maj[0], maj[1], maj[2], maj[4], maj[5]];
+    }
+    if (mode == ScaleMode.pentatonicMinor) {
+      final nm = spelledLabels(rootMidi, ScaleMode.naturalMinor);
+      return [nm[0], nm[2], nm[3], nm[4], nm[6]];
+    }
     if (mode == ScaleMode.major) {
       return List<String>.from(_majorSpellingsByPc[pc]!);
     }
@@ -81,7 +111,23 @@ abstract final class MusicScale {
     if (i < 0) {
       return List<String>.from(_majorSpellingsByPc[pc]!);
     }
-    return [...rel.sublist(i), ...rel.sublist(0, i)];
+    final nm = [...rel.sublist(i), ...rel.sublist(0, i)];
+    if (mode == ScaleMode.harmonicMinor && nm.length >= 7) {
+      final raised = _raisedSeventhLabel(rootMidi, nm[6]);
+      return [...nm.sublist(0, 6), raised];
+    }
+    return nm;
+  }
+
+  static String _raisedSeventhLabel(int rootMidi, String naturalSeventh) {
+    final targetMidi = rootMidi + 11;
+    final alt = TheoryNoteLabels.label(targetMidi, withOctave: false);
+    if (alt != naturalSeventh) {
+      return alt;
+    }
+    return naturalSeventh.contains('diyez')
+        ? naturalSeventh
+        : '$naturalSeventh diyez';
   }
 
   static List<ScaleDegree> spelledDegrees(int rootMidi, ScaleMode mode) {
