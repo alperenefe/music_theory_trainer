@@ -16,7 +16,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.alper.music_theory_trainer"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -29,6 +29,8 @@ android {
     }
 
     defaultConfig {
+        // firebase_app_distribution_android: production | staging
+        missingDimensionStrategy("default", "production")
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.alper.music_theory_trainer"
         // You can update the following values to match your application needs.

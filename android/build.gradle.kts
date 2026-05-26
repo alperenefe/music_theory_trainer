@@ -1,7 +1,18 @@
+import com.android.build.gradle.LibraryExtension
+
 allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+}
+
+// firebase_app_distribution_android ships with compileSdk 30; needs 31+ for lStar.
+subprojects {
+    afterEvaluate {
+        extensions.findByType(LibraryExtension::class.java)?.apply {
+            compileSdk = 35
+        }
     }
 }
 
