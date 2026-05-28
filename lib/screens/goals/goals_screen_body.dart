@@ -24,6 +24,7 @@ final class GoalsScreenBody extends StatelessWidget {
     required this.soundEnabled,
     required this.onSoundChanged,
     required this.onSave,
+    this.onReplayOnboarding,
   });
 
   final List<int> midiChoices;
@@ -36,6 +37,7 @@ final class GoalsScreenBody extends StatelessWidget {
   final bool soundEnabled;
   final ValueChanged<bool> onSoundChanged;
   final VoidCallback onSave;
+  final VoidCallback? onReplayOnboarding;
 
   ExerciseGoal _goalFor(String kind) =>
       goalsByKind[kind] ?? const ExerciseGoal();
@@ -108,6 +110,13 @@ final class GoalsScreenBody extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
               const AppUpdateCard(),
+              if (onReplayOnboarding != null) ...[
+                const SizedBox(height: AppSpacing.md),
+                TextButton(
+                  onPressed: onReplayOnboarding,
+                  child: Text(AppStrings.replayOnboarding),
+                ),
+              ],
               const SizedBox(height: AppSpacing.xl),
               FilledButton(onPressed: onSave, child: Text(AppStrings.goalSave)),
             ],

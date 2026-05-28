@@ -8,31 +8,38 @@ import '../cards/soft_card.dart';
 
 /// Landing'de egzersiz türüne göre görsel önizleme.
 final class ExerciseLandingPreview extends StatelessWidget {
-  const ExerciseLandingPreview({super.key, required this.goalKind});
+  const ExerciseLandingPreview({
+    super.key,
+    required this.goalKind,
+    this.compact = false,
+  });
 
   final String? goalKind;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final previewH = compact ? 52.0 : 72.0;
     return SoftCard(
-      padding: const EdgeInsets.symmetric(
+      padding: EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
-        vertical: AppSpacing.lg,
+        vertical: compact ? AppSpacing.sm : AppSpacing.md,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            AppStrings.landingPreviewTitle,
-            style: t.labelLarge?.copyWith(
-              color: DesignTokens.slate400,
-              fontWeight: FontWeight.w700,
+          if (!compact)
+            Text(
+              AppStrings.landingPreviewTitle,
+              style: t.labelMedium?.copyWith(
+                color: DesignTokens.slate500,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.md),
+          if (!compact) const SizedBox(height: AppSpacing.sm),
           SizedBox(
-            height: 72,
+            height: previewH,
             child: Center(child: _PreviewBody(kind: goalKind)),
           ),
         ],

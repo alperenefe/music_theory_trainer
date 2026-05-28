@@ -131,7 +131,10 @@ final class _HomeScreenState extends State<HomeScreen> {
   Widget _sectionHeader(HomeSectionSpec section) {
     final t = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.only(top: AppSpacing.lg, bottom: AppSpacing.sm),
+      padding: EdgeInsets.only(
+        top: section == homeSectionSpecs.first ? AppSpacing.sm : AppSpacing.md,
+        bottom: AppSpacing.xs,
+      ),
       child: Row(
         children: [
           Container(
@@ -235,8 +238,8 @@ final class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(22),
                 child: Image.asset(
                   'assets/branding/app_icon.png',
-                  width: 88,
-                  height: 88,
+                  width: 64,
+                  height: 64,
                   fit: BoxFit.cover,
                   alignment: Alignment.center,
                   filterQuality: FilterQuality.high,
@@ -280,14 +283,14 @@ final class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      const SizedBox(height: AppSpacing.sectionGap),
+      const SizedBox(height: AppSpacing.md),
       HomeStatsBanner(attempts: _attempts),
-      const SizedBox(height: AppSpacing.sectionGap),
+      const SizedBox(height: AppSpacing.md),
       HomeTwinCtaRow(
         onTunerTap: _openTuner,
         onGoalsTap: _openGoals,
       ),
-      const SizedBox(height: AppSpacing.sectionGap),
+      const SizedBox(height: AppSpacing.md),
       ..._buildSections(),
       const SizedBox(height: AppSpacing.lg),
       Text(

@@ -6,6 +6,7 @@ import '../models/notation_pitch.dart';
 import '../models/practice_prefs.dart';
 import '../services/practice_prefs_repository.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
+import '../widgets/onboarding/app_onboarding_dialog.dart';
 import 'goals/goals_screen_body.dart';
 
 final class GoalsScreen extends StatefulWidget {
@@ -155,6 +156,10 @@ final class _GoalsScreenState extends State<GoalsScreen> {
                 soundEnabled: _soundEnabled,
                 onSoundChanged: (v) => setState(() => _soundEnabled = v),
                 onSave: _save,
+                onReplayOnboarding: () => showAppOnboardingDialog(
+                  context: context,
+                  repo: widget.repo,
+                ),
               );
             },
           ),

@@ -6,15 +6,15 @@ import '../services/goal_progress_snapshot.dart';
 import '../services/practice_prefs_repository.dart';
 import '../services/stats_repository.dart';
 import '../theme/app_spacing.dart';
+import '../theme/design_tokens.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
 import '../widgets/exercise/exercise_screen_top_bar.dart';
 import '../widgets/exercise/exercise_landing_preview.dart';
 import '../widgets/exercise/exercise_stats_panel.dart';
 import '../widgets/home/activity_goal_progress_strip.dart';
 import '../widgets/loading/home_list_skeleton.dart';
-import '../widgets/text/section_header.dart';
 
-/// Egzersiz öncesi: hedef ilerlemesi, son 500 istatistik, Başla.
+/// Egzersiz öncesi: önizleme + hedef; Başla sabit altta; istatistik katlanır.
 final class ExerciseLandingScreen extends StatefulWidget {
   const ExerciseLandingScreen({
     super.key,
@@ -105,56 +105,108 @@ final class _ExerciseLandingScreenState extends State<ExerciseLandingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
     return Scaffold(
       body: MeshGradientBackdrop(
         child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ExerciseScreenTopBar(title: widget.title),
-              Expanded(
-                child: _loading
-                    ? const HomeListSkeleton()
-                    : ListView(
-                        padding: AppSpacing.screenHV,
+          child: _loading
+              ? const HomeListSkeleton()
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ExerciseScreenTopBar(
+                      title: widget.title,
+                      subtitle: widget.description,
+                    ),
+                    Expanded(
+                      child: ListView(
+                        padding: AppSpacing.screenH.copyWith(
+                          top: AppSpacing.sm,
+                          bottom: AppSpacing.sm,
+                        ),
                         physics: const BouncingScrollPhysics(),
                         children: [
-                          SectionHeader(
-                            title: widget.title,
-                            subtitle: widget.description,
+                          ExerciseLandingPreview(
+                            goalKind: widget.goalKind,
+                            compact: true,
                           ),
-                          const SizedBox(height: AppSpacing.md),
-                          ExerciseLandingPreview(goalKind: widget.goalKind),
                           if (_goalProgress != null) ...[
-                            const SizedBox(height: AppSpacing.md),
+                            const SizedBox(height: AppSpacing.sm),
                             ActivityGoalProgressStrip(
                               snapshot: _goalProgress!,
                               variant: GoalProgressVariant.landingDual,
                             ),
                           ],
-                          const SizedBox(height: AppSpacing.lg),
+                          if (_rows.isEmpty) ...[
+                            const SizedBox(height: AppSpacing.md),
+                            Text(
+                              AppStrings.exerciseStatsEmpty,
+                              textAlign: TextAlign.center,
+                              style: t.bodySmall?.copyWith(
+                                color: DesignTokens.slate500,
+                              ),
+                            ),
+                          ] else ...[
+                            const SizedBox(height: AppSpacing.sm),
+                            Theme(
+                              data: Theme.of(context).copyWith(
+                                dividerColor: Colors.transparent,
+                              ),
+                              child: ExpansionTile(
+                                tilePadding: EdgeInsets.zero,
+                                childrenPadding: const EdgeInsets.only(
+                                  bottom: AppSpacing.sm,
+                                ),
+                                title: Text(
+                                  AppStrings.exerciseStatsTitle,
+                                  style: t.titleSmall?.copyWith(
+                                    color: DesignTokens.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  AppStrings.exerciseStatsWindow(500),
+                                  style: t.labelSmall?.copyWith(
+                                    color: DesignTokens.slate500,
+                                  ),
+                                ),
+                                initiallyExpanded: false,
+                                children: [
+                                  ExerciseStatsPanel(
+                                    rows: _rows,
+                                    guitarStyleLabels:
+                                        widget.guitarStyleLabels,
+                                    showHeader: false,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: AppSpacing.screenH.copyWith(
+                        bottom: AppSpacing.sm,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
                           FilledButton.icon(
                             onPressed: _startPractice,
                             icon: const Icon(Icons.play_arrow_rounded),
                             label: Text(AppStrings.start),
                           ),
-                          if (_rows.isNotEmpty) ...[
-                            const SizedBox(height: AppSpacing.md),
-                            OutlinedButton(
+                          if (_rows.isNotEmpty)
+                            TextButton(
                               onPressed: _clearExerciseStats,
                               child: Text(AppStrings.clearExerciseStats),
                             ),
-                          ],
-                          const SizedBox(height: AppSpacing.xl),
-                          ExerciseStatsPanel(
-                            rows: _rows,
-                            guitarStyleLabels: widget.guitarStyleLabels,
-                          ),
                         ],
                       ),
-              ),
-            ],
-          ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );

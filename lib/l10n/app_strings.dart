@@ -81,6 +81,7 @@ abstract final class AppStrings {
   static const exercisePrefsGoalOtherExercise =
       'Seçili hedef başka bir alıştırmada.';
   static const goalsTitle = 'Hedef ve aralık';
+  static const replayOnboarding = 'Tanıtımı tekrar göster';
   static const goalsDesc =
       'Her etkinlik için ayrı hedef; ana ekranda kartların altında ilerleme görünür.';
   static const goalPerActivitySection = 'Etkinlik hedefleri';

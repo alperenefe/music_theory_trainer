@@ -8,6 +8,7 @@ final class ExerciseScreenTopBar extends StatelessWidget {
   const ExerciseScreenTopBar({
     super.key,
     required this.title,
+    this.subtitle,
     this.modeLabel,
     this.sessionCorrect,
     this.sessionTotal,
@@ -15,6 +16,7 @@ final class ExerciseScreenTopBar extends StatelessWidget {
   });
 
   final String title;
+  final String? subtitle;
   final String? modeLabel;
   final int? sessionCorrect;
   final int? sessionTotal;
@@ -49,6 +51,16 @@ final class ExerciseScreenTopBar extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
+                if (subtitle != null && subtitle!.isNotEmpty)
+                  Text(
+                    subtitle!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: t.bodySmall?.copyWith(
+                      color: DesignTokens.slate400,
+                      height: 1.35,
+                    ),
+                  ),
                 if (modeLabel != null && modeLabel!.isNotEmpty)
                   Text(
                     modeLabel!,

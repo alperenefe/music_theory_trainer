@@ -16,11 +16,13 @@ final class ExerciseStatsPanel extends StatelessWidget {
     required this.rows,
     required this.guitarStyleLabels,
     this.windowSize = 500,
+    this.showHeader = true,
   });
 
   final List<PracticeAttempt> rows;
   final bool guitarStyleLabels;
   final int windowSize;
+  final bool showHeader;
 
   @override
   Widget build(BuildContext context) {
@@ -29,13 +31,15 @@ final class ExerciseStatsPanel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SectionHeader(
-          title: AppStrings.exerciseStatsTitle,
-          subtitle: rows.isEmpty
-              ? AppStrings.exerciseStatsEmpty
-              : AppStrings.exerciseStatsWindow(windowSize),
-        ),
-        const SizedBox(height: AppSpacing.md),
+        if (showHeader) ...[
+          SectionHeader(
+            title: AppStrings.exerciseStatsTitle,
+            subtitle: rows.isEmpty
+                ? AppStrings.exerciseStatsEmpty
+                : AppStrings.exerciseStatsWindow(windowSize),
+          ),
+          const SizedBox(height: AppSpacing.md),
+        ],
         StatsSummaryCard(
           summary: summary,
           series: series,

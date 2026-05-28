@@ -5,6 +5,7 @@ import '../../services/stats_summary.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
 import '../cards/soft_card.dart';
+import 'accuracy_progress_bar.dart';
 import 'attempt_sparkline.dart';
 
 enum StatsSummaryLayout { stacked, landingRow }
@@ -71,6 +72,7 @@ final class StatsSummaryCard extends StatelessWidget {
                 label: AppStrings.accuracy,
                 value: '${(summary.accuracy * 100).round()}%',
                 valueColor: DesignTokens.violet400,
+                progress: summary.accuracy,
               ),
             ),
             Expanded(
@@ -92,10 +94,7 @@ final class StatsSummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           StatsMetricRow(label: AppStrings.attempts, value: '${summary.total}'),
-          StatsMetricRow(
-            label: AppStrings.accuracy,
-            value: '${(summary.accuracy * 100).round()}%',
-          ),
+          _AccuracyMetricBlock(accuracy: summary.accuracy),
           StatsMetricRow(
             label: AppStrings.avgTime,
             value: summary.avgLatencyMs == null
@@ -125,11 +124,13 @@ final class _LandingMetric extends StatelessWidget {
     required this.label,
     required this.value,
     required this.valueColor,
+    this.progress,
   });
 
   final String label;
   final String value;
   final Color valueColor;
+  final double? progress;
 
   @override
   Widget build(BuildContext context) {
@@ -143,6 +144,14 @@ final class _LandingMetric extends StatelessWidget {
             fontWeight: FontWeight.w800,
           ),
         ),
+        if (progress != null) ...[
+          const SizedBox(height: 6),
+          AccuracyProgressBar(
+            accuracy: progress!,
+            height: 6,
+            useGradient: false,
+          ),
+        ],
         const SizedBox(height: 4),
         Text(
           label,
@@ -153,6 +162,45 @@ final class _LandingMetric extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+final class _AccuracyMetricBlock extends StatelessWidget {
+  const _AccuracyMetricBlock({required this.accuracy});
+
+  final double accuracy;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    final pct = (accuracy * 100).round();
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  AppStrings.accuracy,
+                  style: t.bodyMedium?.copyWith(color: DesignTokens.slate400),
+                ),
+              ),
+              Text(
+                '$pct%',
+                style: t.titleMedium?.copyWith(
+                  color: DesignTokens.green400,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          AccuracyProgressBar(accuracy: accuracy),
+        ],
+      ),
     );
   }
 }

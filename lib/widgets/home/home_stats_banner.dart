@@ -8,6 +8,7 @@ import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
 import '../../screens/stats_screen.dart';
 import '../cards/soft_card.dart';
+import '../stats/accuracy_progress_bar.dart';
 
 /// Günlük seri + genel doğruluk (ZIP ana sayfa şeridi).
 final class HomeStatsBanner extends StatelessWidget {
@@ -92,28 +93,8 @@ final class HomeStatsBanner extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 4),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: summary.total == 0
-                ? LinearProgressIndicator(
-                    value: 0,
-                    minHeight: 8,
-                    backgroundColor: DesignTokens.slate800,
-                    color: DesignTokens.green400,
-                  )
-                : ShaderMask(
-                    shaderCallback: (bounds) =>
-                        DesignTokens.statsProgressGradient.createShader(
-                      Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-                    ),
-                    blendMode: BlendMode.srcIn,
-                    child: LinearProgressIndicator(
-                      value: summary.accuracy,
-                      minHeight: 8,
-                      backgroundColor: DesignTokens.slate800,
-                      color: DesignTokens.white,
-                    ),
-                  ),
+          AccuracyProgressBar(
+            accuracy: summary.total == 0 ? 0 : summary.accuracy,
           ),
           const SizedBox(height: AppSpacing.xs),
           Row(

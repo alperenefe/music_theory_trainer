@@ -56,7 +56,7 @@ final class HomeRouteSpec {
   final HomePageBuilder pageBuilder;
 }
 
-/// Sıra: porte → teori → gitar → akort → hedef (en altta).
+/// Sıra: porte → teori → gitar (akort ana sayfa twin CTA ile).
 final List<HomeRouteSpec> homeRouteSpecs = [
   HomeRouteSpec(
     index: 0,

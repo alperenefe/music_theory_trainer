@@ -6,6 +6,7 @@ import '../../utils/stats_midi_label.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
 import '../cards/soft_card.dart';
+import 'accuracy_progress_bar.dart';
 
 final class StatsMidiBreakdown extends StatelessWidget {
   const StatsMidiBreakdown({
@@ -47,25 +48,36 @@ final class StatsMidiBreakdown extends StatelessWidget {
                   child: RepaintBoundary(
                     child: SoftCard(
                       padding: AppSpacing.cardPadDense,
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Expanded(
-                            child: Text(
-                              StatsMidiLabel.forMidi(
-                                m.midi,
-                                guitarStyle: guitarStyleLabels,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  StatsMidiLabel.forMidi(
+                                    m.midi,
+                                    guitarStyle: guitarStyleLabels,
+                                  ),
+                                  style: t.bodyMedium?.copyWith(
+                                    color: DesignTokens.white,
+                                  ),
+                                ),
                               ),
-                              style: t.bodyMedium?.copyWith(
-                                color: DesignTokens.white,
+                              Text(
+                                '$pct% · ${m.correct}/${m.total} · ${m.avgMs} ms',
+                                style: t.labelMedium?.copyWith(
+                                  color: accColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            ),
+                            ],
                           ),
-                          Text(
-                            '$pct% · ${m.correct}/${m.total} · ${m.avgMs} ms',
-                            style: t.labelMedium?.copyWith(
-                              color: accColor,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          const SizedBox(height: AppSpacing.xs),
+                          AccuracyProgressBar(
+                            accuracy: m.accuracy,
+                            height: 6,
+                            useGradient: false,
                           ),
                         ],
                       ),
