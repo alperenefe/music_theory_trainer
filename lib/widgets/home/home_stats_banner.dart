@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-
 import '../../l10n/app_strings.dart';
 import '../../models/practice_attempt.dart';
 import '../../services/practice_streak.dart';
@@ -9,6 +7,7 @@ import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
 import '../../screens/stats_screen.dart';
 import '../cards/soft_card.dart';
+import '../motion/motion_entrance.dart';
 import '../motion/pressable_scale.dart';
 import '../stats/accuracy_progress_bar.dart';
 
@@ -116,9 +115,6 @@ final class HomeStatsBanner extends StatelessWidget {
         ],
       ),
     ),
-    )
-        .animate()
-        .fadeIn(duration: AppMotion.medium, curve: AppMotion.curve)
-        .slideY(begin: 0.05, end: 0, duration: AppMotion.medium, curve: AppMotion.curve);
+    ).entranceFadeSlide(context);
   }
 }

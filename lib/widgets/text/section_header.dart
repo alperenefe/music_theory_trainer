@@ -26,7 +26,7 @@ final class SectionHeader extends StatelessWidget {
           style: t.titleLarge?.copyWith(
             fontWeight: FontWeight.w700,
             letterSpacing: -0.4,
-            color: DesignTokens.white,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         if (subtitle != null) ...[

@@ -152,7 +152,7 @@ final class _OnboardingDialogBodyState extends State<OnboardingDialogBody> {
                       if (_page > 0)
                         TextButton(
                           onPressed: () => _pc.previousPage(
-                            duration: AppMotion.medium,
+                            duration: AppMotion.dur(context, AppMotion.medium),
                             curve: AppMotion.curve,
                           ),
                           child: Text(AppStrings.back),
@@ -161,7 +161,7 @@ final class _OnboardingDialogBodyState extends State<OnboardingDialogBody> {
                       if (_page < 2)
                         FilledButton(
                           onPressed: () => _pc.nextPage(
-                            duration: AppMotion.medium,
+                            duration: AppMotion.dur(context, AppMotion.medium),
                             curve: AppMotion.curve,
                           ),
                           child: Text(AppStrings.obNext),

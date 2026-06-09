@@ -42,4 +42,11 @@ abstract final class AppMotion {
   static const Duration fast = Duration(milliseconds: 180);
   static const Duration medium = Duration(milliseconds: 320);
   static const Curve curve = Curves.easeOutCubic;
+
+  /// Android/iOS «animasyonları azalt» veya erişilebilirlik ayarı.
+  static bool reduced(BuildContext context) =>
+      MediaQuery.disableAnimationsOf(context);
+
+  static Duration dur(BuildContext context, Duration normal) =>
+      reduced(context) ? Duration.zero : normal;
 }

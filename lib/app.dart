@@ -17,7 +17,9 @@ final class _MusicTheoryAppState extends State<MusicTheoryApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: AppStrings.appTitle,
-      theme: AppTheme.dark,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
       builder: (context, child) {
         if (child == null) {
           return const SizedBox.shrink();

@@ -57,8 +57,8 @@ final class _PressableScaleState extends State<PressableScale> {
       onTapCancel: active ? () => _setPressed(false) : null,
       onTap: active ? _handleTap : null,
       child: AnimatedScale(
-        scale: _pressed ? widget.scale : 1,
-        duration: AppMotion.fast,
+        scale: _pressed && !AppMotion.reduced(context) ? widget.scale : 1,
+        duration: AppMotion.dur(context, AppMotion.fast),
         curve: AppMotion.curve,
         child: widget.child,
       ),

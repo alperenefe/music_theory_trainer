@@ -18,4 +18,24 @@ void main() {
     await tester.tap(find.text('Dokun'));
     expect(tapped, isTrue);
   });
+
+  testWidgets('reduced motion basma ölçeğini atlar', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: Scaffold(
+            body: PressableScale(
+              onTap: () {},
+              child: const Text('Dokun'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Dokun'));
+    await tester.pump(const Duration(milliseconds: 200));
+    final scale = tester.widget<AnimatedScale>(find.byType(AnimatedScale));
+    expect(scale.scale, 1);
+  });
 }

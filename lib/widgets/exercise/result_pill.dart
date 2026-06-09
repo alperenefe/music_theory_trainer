@@ -13,6 +13,9 @@ final class ResultPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reduced = AppMotion.reduced(context);
+    final slideDur = AppMotion.dur(context, AppMotion.medium);
+    final fadeDur = AppMotion.dur(context, AppMotion.fast);
     final t = Theme.of(context).textTheme;
     final icon = correct ? Icons.check_circle_rounded : Icons.cancel_rounded;
     final row = Container(
@@ -55,15 +58,15 @@ final class ResultPill extends StatelessWidget {
       ),
     );
     return AnimatedSlide(
-      duration: AppMotion.medium,
+      duration: slideDur,
       curve: AppMotion.curve,
-      offset: visible ? Offset.zero : const Offset(0, 0.08),
+      offset: visible || reduced ? Offset.zero : const Offset(0, 0.08),
       child: AnimatedOpacity(
-        duration: AppMotion.fast,
+        duration: fadeDur,
         opacity: visible ? 1 : 0,
         child: IgnorePointer(
           ignoring: !visible,
-          child: visible
+          child: visible && !reduced
               ? row
                     .animate(key: ValueKey<bool>(correct))
                     .scale(

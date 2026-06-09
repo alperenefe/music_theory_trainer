@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-
 import '../../l10n/app_strings.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
 import '../../services/goal_progress_snapshot.dart';
 import '../cards/soft_card.dart';
+import '../motion/motion_entrance.dart';
 import '../motion/pressable_scale.dart';
 import 'activity_goal_progress_strip.dart';
 
@@ -61,7 +60,7 @@ final class HomeRouteCard extends StatelessWidget {
                           Text(
                             title,
                             style: t.titleMedium?.copyWith(
-                              color: DesignTokens.white,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -103,15 +102,10 @@ final class HomeRouteCard extends StatelessWidget {
                 ),
               ),
       ),
-    )
-        .animate()
-        .fadeIn(duration: AppMotion.medium, curve: AppMotion.curve)
-        .slideY(
-          begin: 0.06,
-          end: 0,
-          duration: AppMotion.medium,
-          curve: AppMotion.curve,
-          delay: (60 * index).ms,
-        );
+    ).entranceFadeSlide(
+      context,
+      slideY: 0.06,
+      delay: Duration(milliseconds: 60 * index),
+    );
   }
 }

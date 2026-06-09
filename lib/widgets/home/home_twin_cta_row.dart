@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-
 import '../../l10n/app_strings.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
+import '../motion/motion_entrance.dart';
 
 /// Ana sayfa alt kısayollar: Akort (dolu cyan) + Hedefler (outline).
 final class HomeTwinCtaRow extends StatelessWidget {
@@ -20,8 +19,9 @@ final class HomeTwinCtaRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     final labelStyle = Theme.of(context).textTheme.labelLarge?.copyWith(
-      color: DesignTokens.white,
+      color: onSurface,
       fontWeight: FontWeight.w800,
       letterSpacing: 0.6,
     );
@@ -51,10 +51,11 @@ final class HomeTwinCtaRow extends StatelessWidget {
             ),
           ),
         ],
-    )
-        .animate()
-        .fadeIn(duration: AppMotion.medium, delay: 80.ms, curve: AppMotion.curve)
-        .slideY(begin: 0.06, end: 0, duration: AppMotion.medium, curve: AppMotion.curve);
+    ).entranceFadeSlide(
+      context,
+      slideY: 0.06,
+      delay: const Duration(milliseconds: 80),
+    );
   }
 }
 
@@ -78,15 +79,24 @@ final class _CtaButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final outlineFill = Theme.of(context).colorScheme.surfaceContainerHighest;
+    final outlineBorder = dark
+        ? DesignTokens.slate700
+        : const Color(0xFFE2E8F0);
+    final iconColor = filled ? DesignTokens.white : Theme.of(context).colorScheme.onSurface;
+    final textStyle = filled
+        ? labelStyle?.copyWith(color: DesignTokens.white)
+        : labelStyle;
     return Material(
-      color: filled ? background : DesignTokens.slate800,
+      color: filled ? background : outlineFill,
       elevation: filled ? 4 : 0,
       shadowColor: filled ? background?.withValues(alpha: 0.45) : null,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadii.md),
         side: filled
             ? BorderSide.none
-            : const BorderSide(color: DesignTokens.slate700),
+            : BorderSide(color: outlineBorder),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -96,9 +106,9 @@ final class _CtaButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: DesignTokens.white, size: 20),
+              Icon(icon, color: iconColor, size: 20),
               const SizedBox(width: AppSpacing.xs),
-              Text(label, style: labelStyle),
+              Text(label, style: textStyle),
             ],
           ),
         ),

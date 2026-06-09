@@ -19,6 +19,18 @@ final class CelebrationBurst extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (MediaQuery.disableAnimationsOf(context)) {
+      return const SizedBox(
+        height: 120,
+        child: Center(
+          child: Icon(
+            Icons.celebration_rounded,
+            size: 48,
+            color: DesignTokens.green400,
+          ),
+        ),
+      );
+    }
     final rnd = Random(7);
     return SizedBox(
       height: 120,

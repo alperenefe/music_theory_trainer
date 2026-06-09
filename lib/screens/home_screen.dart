@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-
 import '../config/home_route_catalog.dart';
 import '../config/home_section_catalog.dart';
 import '../l10n/app_strings.dart';
@@ -20,6 +18,7 @@ import '../widgets/home/home_grid_card.dart';
 import '../widgets/home/home_route_card.dart';
 import '../widgets/home/home_stats_banner.dart';
 import '../widgets/home/home_twin_cta_row.dart';
+import '../widgets/motion/motion_entrance.dart';
 import '../widgets/loading/home_list_skeleton.dart';
 import '../widgets/onboarding/app_onboarding_dialog.dart';
 import '../widgets/text/section_header.dart';
@@ -244,30 +243,14 @@ final class _HomeScreenState extends State<HomeScreen> {
                   alignment: Alignment.center,
                   filterQuality: FilterQuality.high,
                 ),
-              )
-              .animate()
-              .fadeIn(duration: AppMotion.medium)
-              .scale(
-                begin: const Offset(0.92, 0.92),
-                end: const Offset(1, 1),
-                duration: AppMotion.medium,
-                curve: AppMotion.curve,
-              ),
+              ).entranceFadeScale(context),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child:
                 SectionHeader(
                       title: AppStrings.appTitle,
                       subtitle: AppStrings.homeSubtitle,
-                    )
-                    .animate()
-                    .fadeIn(duration: AppMotion.medium)
-                    .slideY(
-                      begin: 0.04,
-                      end: 0,
-                      duration: AppMotion.medium,
-                      curve: AppMotion.curve,
-                    ),
+                    ).entranceFadeSlide(context, slideY: 0.04),
           ),
           IconButton(
             tooltip: _prefs.soundEnabled

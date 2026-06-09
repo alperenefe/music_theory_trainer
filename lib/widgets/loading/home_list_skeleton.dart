@@ -20,7 +20,19 @@ final class _HomeListSkeletonState extends State<HomeListSkeleton>
     _c = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1100),
-    )..repeat(reverse: true);
+      value: 0.5,
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (AppMotion.reduced(context)) {
+      _c.stop();
+      _c.value = 0.5;
+    } else if (!_c.isAnimating) {
+      _c.repeat(reverse: true);
+    }
   }
 
   @override
