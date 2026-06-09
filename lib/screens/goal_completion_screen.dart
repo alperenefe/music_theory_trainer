@@ -8,6 +8,7 @@ import '../theme/app_spacing.dart';
 import '../theme/design_tokens.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
 import '../widgets/cards/soft_card.dart';
+import '../widgets/feedback/celebration_burst.dart';
 import '../widgets/text/section_header.dart';
 
 final class GoalCompletionScreen extends StatelessWidget {
@@ -38,7 +39,8 @@ final class GoalCompletionScreen extends StatelessWidget {
                     duration: 450.ms,
                     curve: Curves.easeOutBack,
                   ),
-              const SizedBox(height: AppSpacing.md),
+              const CelebrationBurst(),
+              const SizedBox(height: AppSpacing.sm),
               Icon(
                 Icons.emoji_events_rounded,
                 size: 56,

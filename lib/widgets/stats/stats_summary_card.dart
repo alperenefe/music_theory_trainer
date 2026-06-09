@@ -5,6 +5,7 @@ import '../../services/stats_summary.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
 import '../cards/soft_card.dart';
+import '../feedback/app_empty_state.dart';
 import 'accuracy_progress_bar.dart';
 
 final class StatsSummaryCard extends StatelessWidget {
@@ -19,35 +20,7 @@ final class StatsSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
     if (summary.total == 0) {
-      return SoftCard(
-        child: Column(
-          children: [
-            Icon(
-              Icons.insights_outlined,
-              size: 48,
-              color: DesignTokens.slate500,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              AppStrings.noData,
-              textAlign: TextAlign.center,
-              style: t.titleSmall?.copyWith(
-                color: DesignTokens.slate300,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              AppStrings.emptyStateHint,
-              textAlign: TextAlign.center,
-              style: t.bodyMedium?.copyWith(
-                color: DesignTokens.slate400,
-                height: 1.45,
-              ),
-            ),
-          ],
-        ),
-      );
+      return AppEmptyState.noData();
     }
 
     return SoftCard(

@@ -19,6 +19,7 @@ import '../widgets/background/mesh_gradient_backdrop.dart';
 import '../widgets/exercise/exercise_screen_top_bar.dart';
 import '../widgets/exercise/feedback_bottom_bar.dart';
 import '../widgets/exercise/staff_exercise_card.dart';
+import '../widgets/loading/exercise_loading_body.dart';
 import 'goal_completion_screen.dart';
 
 final class PlacementScreen extends StatefulWidget {
@@ -172,7 +173,7 @@ final class _PlacementScreenState extends State<PlacementScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const ExerciseLoadingBody();
     }
     final t = Theme.of(context).textTheme;
     return Scaffold(

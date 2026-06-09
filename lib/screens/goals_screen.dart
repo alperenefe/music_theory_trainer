@@ -6,6 +6,7 @@ import '../models/notation_pitch.dart';
 import '../models/practice_prefs.dart';
 import '../services/practice_prefs_repository.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
+import '../widgets/loading/home_list_skeleton.dart';
 import '../widgets/onboarding/app_onboarding_dialog.dart';
 import 'custom_workout_screen.dart';
 import 'goals/goals_screen_body.dart';
@@ -144,12 +145,7 @@ final class _GoalsScreenState extends State<GoalsScreen> {
             future: _load,
             builder: (context, snap) {
               if (!snap.hasData) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(32),
-                    child: CircularProgressIndicator(),
-                  ),
-                );
+                return const HomeListSkeleton();
               }
               return GoalsScreenBody(
                 midiChoices: _midiChoices,

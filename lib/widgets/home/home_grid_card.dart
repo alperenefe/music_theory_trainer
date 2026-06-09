@@ -6,6 +6,7 @@ import '../../services/goal_progress_snapshot.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
 import '../cards/soft_card.dart';
+import '../motion/pressable_scale.dart';
 import 'activity_goal_progress_strip.dart';
 
 /// İki sütunlu ana menü kartı (ZIP grid).
@@ -34,14 +35,11 @@ final class HomeGridCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
-    return SoftCard(
+    return PressableScale(
+      onTap: onTap,
+      child: SoftCard(
           padding: EdgeInsets.zero,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(AppRadii.lg),
-              onTap: onTap,
-              child: DecoratedBox(
+          child: DecoratedBox(
                 decoration: BoxDecoration(
                   border: Border(
                     left: BorderSide(color: accent, width: 4),
@@ -137,10 +135,9 @@ final class HomeGridCard extends StatelessWidget {
                 ],
                   ),
                 ),
-              ),
-            ),
           ),
-        )
+        ),
+    )
         .animate()
         .fadeIn(duration: AppMotion.medium, curve: AppMotion.curve)
         .slideY(

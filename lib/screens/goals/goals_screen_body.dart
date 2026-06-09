@@ -5,7 +5,6 @@ import '../../models/completed_goal_record.dart';
 import '../../models/exercise_goal.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
-import '../../widgets/text/section_header.dart';
 import 'goal_midi_range_card.dart';
 import '../../widgets/settings/app_update_card.dart';
 import 'goal_sound_switch_card.dart';
@@ -77,10 +76,9 @@ final class GoalsScreenBody extends StatelessWidget {
             padding: AppSpacing.screenHV,
             physics: const BouncingScrollPhysics(),
             children: [
-              SectionHeader(
-                title: AppStrings.goalsTitle,
-                subtitle: AppStrings.goalsDesc,
-                subtitleStyle: t.bodySmall?.copyWith(
+              Text(
+                AppStrings.goalsDesc,
+                style: t.bodySmall?.copyWith(
                   color: DesignTokens.slate500,
                   height: 1.35,
                 ),

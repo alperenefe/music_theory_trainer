@@ -83,7 +83,10 @@ void main() {
   testWidgets(
     'entegrasyon: hedef ekranı açılır',
     (tester) async {
-      await openHomeRoute(tester, AppStrings.goalsTitle);
+      await pumpUntilHomeReady(tester);
+      await tester.tap(find.text(AppStrings.homeCtaGoals));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 700));
       expect(find.text(AppStrings.goalSave), findsOneWidget);
     },
     timeout: const Timeout(Duration(minutes: 2)),

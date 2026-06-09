@@ -6,6 +6,7 @@ import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
 import '../../services/goal_progress_snapshot.dart';
 import '../cards/soft_card.dart';
+import '../motion/pressable_scale.dart';
 import 'activity_goal_progress_strip.dart';
 
 final class HomeRouteCard extends StatelessWidget {
@@ -33,14 +34,11 @@ final class HomeRouteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
-    return SoftCard(
+    return PressableScale(
+      onTap: onTap,
+      child: SoftCard(
           padding: AppSpacing.cardPad,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(AppRadii.lg),
-              onTap: onTap,
-              child: ConstrainedBox(
+          child: ConstrainedBox(
                 constraints: const BoxConstraints(minHeight: 56),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,9 +102,8 @@ final class HomeRouteCard extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
-          ),
-        )
+      ),
+    )
         .animate()
         .fadeIn(duration: AppMotion.medium, curve: AppMotion.curve)
         .slideY(

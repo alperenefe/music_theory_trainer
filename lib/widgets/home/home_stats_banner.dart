@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../l10n/app_strings.dart';
 import '../../models/practice_attempt.dart';
@@ -8,6 +9,7 @@ import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
 import '../../screens/stats_screen.dart';
 import '../cards/soft_card.dart';
+import '../motion/pressable_scale.dart';
 import '../stats/accuracy_progress_bar.dart';
 
 /// Günlük seri + genel doğruluk (ZIP ana sayfa şeridi).
@@ -31,17 +33,14 @@ final class HomeStatsBanner extends StatelessWidget {
     final streak = PracticeStreak.currentStreak(attempts);
     final summary = summarizeAttempts(attempts);
     final accPct = (summary.accuracy * 100).round();
-    return SoftCard(
+    return PressableScale(
+      onTap: () => _openStats(context),
+      child: SoftCard(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.md,
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(AppRadii.lg),
-          onTap: () => _openStats(context),
-          child: Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
@@ -115,9 +114,11 @@ final class HomeStatsBanner extends StatelessWidget {
             ],
           ),
         ],
-          ),
-        ),
       ),
-    );
+    ),
+    )
+        .animate()
+        .fadeIn(duration: AppMotion.medium, curve: AppMotion.curve)
+        .slideY(begin: 0.05, end: 0, duration: AppMotion.medium, curve: AppMotion.curve);
   }
 }

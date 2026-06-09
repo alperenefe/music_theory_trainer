@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../l10n/app_strings.dart';
 import '../../theme/app_spacing.dart';
@@ -50,7 +51,10 @@ final class HomeTwinCtaRow extends StatelessWidget {
             ),
           ),
         ],
-    );
+    )
+        .animate()
+        .fadeIn(duration: AppMotion.medium, delay: 80.ms, curve: AppMotion.curve)
+        .slideY(begin: 0.06, end: 0, duration: AppMotion.medium, curve: AppMotion.curve);
   }
 }
 

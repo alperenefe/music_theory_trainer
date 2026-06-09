@@ -18,6 +18,7 @@ import '../widgets/exercise/exercise_screen_top_bar.dart';
 import '../widgets/exercise/feedback_bottom_bar.dart';
 import '../widgets/exercise/mcq_choice_list.dart';
 import '../widgets/exercise/staff_exercise_card.dart';
+import '../widgets/loading/exercise_loading_body.dart';
 import 'goal_completion_screen.dart';
 
 final class McqScreen extends StatefulWidget {
@@ -141,7 +142,7 @@ final class _McqScreenState extends State<McqScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const ExerciseLoadingBody();
     }
     return Scaffold(
       body: Column(

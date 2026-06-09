@@ -41,15 +41,8 @@ final List<HomeSectionSpec> homeSectionSpecs = [
     kind: HomeSectionKind.guitar,
     title: AppStrings.homeSectionGuitar,
     accent: DesignTokens.rose400,
-    // Akort yalnızca üstteki twin CTA (1.2); burada tekrar gösterme.
+    // Akort + Hedefler yalnızca üstteki twin CTA; burada tekrar gösterme.
     routeIndices: [5, 6, 7],
-  ),
-  HomeSectionSpec(
-    kind: HomeSectionKind.tools,
-    title: AppStrings.homeSectionTools,
-    accent: DesignTokens.violet500,
-    routeIndices: [9],
-    fullWidthIndices: {9},
   ),
 ];
 
