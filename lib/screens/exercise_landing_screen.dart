@@ -2,19 +2,18 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
 import '../models/practice_attempt.dart';
+import '../services/goal_period_attempts.dart';
 import '../services/goal_progress_snapshot.dart';
 import '../services/practice_prefs_repository.dart';
 import '../services/stats_repository.dart';
 import '../theme/app_spacing.dart';
-import '../theme/design_tokens.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
 import '../widgets/exercise/exercise_screen_top_bar.dart';
 import '../widgets/exercise/exercise_landing_preview.dart';
-import '../widgets/exercise/exercise_stats_panel.dart';
 import '../widgets/home/activity_goal_progress_strip.dart';
 import '../widgets/loading/home_list_skeleton.dart';
 
-/// Egzersiz öncesi: önizleme + hedef; Başla sabit altta; istatistik katlanır.
+/// Egzersiz öncesi: önizleme + hedef; Başla sabit altta.
 final class ExerciseLandingScreen extends StatefulWidget {
   const ExerciseLandingScreen({
     super.key,
@@ -53,13 +52,18 @@ final class _ExerciseLandingScreenState extends State<ExerciseLandingScreen> {
 
   Future<void> _refresh() async {
     final prefs = await widget.prefsRepo.load();
-    final rows = await _statsRepo.recentForExercise(widget.exerciseId);
+    final all = await _statsRepo.load();
     GoalProgressSnapshot? goal;
     final gk = widget.goalKind;
+    final activeGoal = gk != null ? prefs.goalForKind(gk) : null;
     if (gk != null) {
-      final all = await _statsRepo.load();
       goal = GoalProgressSnapshot.forKind(kind: gk, prefs: prefs, all: all);
     }
+    final rows = GoalPeriodAttempts.forExercise(
+      all: all,
+      exerciseId: widget.exerciseId,
+      goal: activeGoal,
+    );
     if (!mounted) {
       return;
     }
@@ -105,7 +109,6 @@ final class _ExerciseLandingScreenState extends State<ExerciseLandingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
     return Scaffold(
       body: MeshGradientBackdrop(
         child: SafeArea(
@@ -130,56 +133,11 @@ final class _ExerciseLandingScreenState extends State<ExerciseLandingScreen> {
                             goalKind: widget.goalKind,
                             compact: true,
                           ),
-                          if (_goalProgress != null) ...[
+                          if (_goalProgress != null && _rows.isEmpty) ...[
                             const SizedBox(height: AppSpacing.sm),
                             ActivityGoalProgressStrip(
                               snapshot: _goalProgress!,
                               variant: GoalProgressVariant.landingDual,
-                            ),
-                          ],
-                          if (_rows.isEmpty) ...[
-                            const SizedBox(height: AppSpacing.md),
-                            Text(
-                              AppStrings.exerciseStatsEmpty,
-                              textAlign: TextAlign.center,
-                              style: t.bodySmall?.copyWith(
-                                color: DesignTokens.slate500,
-                              ),
-                            ),
-                          ] else ...[
-                            const SizedBox(height: AppSpacing.sm),
-                            Theme(
-                              data: Theme.of(context).copyWith(
-                                dividerColor: Colors.transparent,
-                              ),
-                              child: ExpansionTile(
-                                tilePadding: EdgeInsets.zero,
-                                childrenPadding: const EdgeInsets.only(
-                                  bottom: AppSpacing.sm,
-                                ),
-                                title: Text(
-                                  AppStrings.exerciseStatsTitle,
-                                  style: t.titleSmall?.copyWith(
-                                    color: DesignTokens.white,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                subtitle: Text(
-                                  AppStrings.exerciseStatsWindow(500),
-                                  style: t.labelSmall?.copyWith(
-                                    color: DesignTokens.slate500,
-                                  ),
-                                ),
-                                initiallyExpanded: false,
-                                children: [
-                                  ExerciseStatsPanel(
-                                    rows: _rows,
-                                    guitarStyleLabels:
-                                        widget.guitarStyleLabels,
-                                    showHeader: false,
-                                  ),
-                                ],
-                              ),
                             ),
                           ],
                         ],

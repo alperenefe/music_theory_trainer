@@ -47,5 +47,48 @@ void main() {
       expect(m60.correct, 1);
       expect(m60.avgMs, 150);
     });
+
+    test('notalar dogruluga gore dusukten yuksege', () {
+      final rows = [
+        const PracticeAttempt(
+          exercise: 'a',
+          midi: 60,
+          correct: true,
+          latencyMs: 100,
+          atMillis: 1,
+        ),
+        const PracticeAttempt(
+          exercise: 'a',
+          midi: 60,
+          correct: true,
+          latencyMs: 100,
+          atMillis: 2,
+        ),
+        const PracticeAttempt(
+          exercise: 'a',
+          midi: 62,
+          correct: false,
+          latencyMs: 100,
+          atMillis: 3,
+        ),
+        const PracticeAttempt(
+          exercise: 'a',
+          midi: 62,
+          correct: false,
+          latencyMs: 100,
+          atMillis: 4,
+        ),
+        const PracticeAttempt(
+          exercise: 'a',
+          midi: 64,
+          correct: true,
+          latencyMs: 100,
+          atMillis: 5,
+        ),
+      ];
+      final s = summarizeAttempts(rows);
+      expect(s.midiStats.map((e) => e.midi).toList(), [62, 60, 64]);
+      expect(s.midiStats.map((e) => e.accuracy).toList(), [0.0, 1.0, 1.0]);
+    });
   });
 }

@@ -29,7 +29,7 @@ void main() {
     );
   });
 
-  testWidgets('egzersiz girişinde istatistik ve Başla', (tester) async {
+  testWidgets('egzersiz girişinde Başla ve istatistik ekranı', (tester) async {
     final binding = TestWidgetsFlutterBinding.instance;
     await binding.setSurfaceSize(const Size(800, 1200));
     addTearDown(() async {
@@ -55,8 +55,8 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
 
-    expect(find.text(AppStrings.exerciseStatsTitle), findsOneWidget);
     expect(find.widgetWithText(FilledButton, AppStrings.start), findsOneWidget);
+    expect(find.text(AppStrings.exerciseStatsTitle), findsNothing);
 
     await tester.tap(find.widgetWithText(FilledButton, AppStrings.start));
     await tester.pump();
@@ -66,6 +66,6 @@ void main() {
     await tester.tap(find.byIcon(Icons.arrow_back_rounded));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
-    expect(find.text(AppStrings.exerciseStatsTitle), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, AppStrings.start), findsOneWidget);
   });
 }

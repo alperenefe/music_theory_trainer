@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
 import '../models/practice_attempt.dart';
-import '../services/attempt_accuracy_series.dart';
 import '../services/stats_repository.dart';
 import '../services/stats_summary.dart';
 import '../theme/app_spacing.dart';
@@ -121,7 +120,6 @@ final class _StatsScreenState extends State<StatsScreen> {
               final all = snap.data ?? [];
               final rows = _filtered(all);
               final summary = summarizeAttempts(rows);
-              final series = attemptAccuracySeries(rows);
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -185,10 +183,11 @@ final class _StatsScreenState extends State<StatsScreen> {
                                   .label,
                         ),
                         const SizedBox(height: AppSpacing.md),
-                        StatsSummaryCard(summary: summary, series: series),
+                        StatsSummaryCard(summary: summary),
                         const SizedBox(height: AppSpacing.lg),
                         StatsMidiBreakdown(
                           midiStats: summary.midiStats,
+                          attempts: rows,
                           guitarStyleLabels: _guitarStyleLabels,
                         ),
                         const SizedBox(height: AppSpacing.lg),

@@ -61,11 +61,11 @@ void main() {
   );
 
   testWidgets(
-    'entegrasyon: egzersiz girişinde istatistik',
+    'entegrasyon: egzersiz girişinde Başla',
     (tester) async {
       await openHomeRoute(tester, AppStrings.placementTitle);
-      expect(find.text(AppStrings.exerciseStatsTitle), findsOneWidget);
       expect(find.widgetWithText(FilledButton, AppStrings.start), findsOneWidget);
+      expect(find.text(AppStrings.exerciseStatsTitle), findsNothing);
     },
     timeout: const Timeout(Duration(minutes: 2)),
   );

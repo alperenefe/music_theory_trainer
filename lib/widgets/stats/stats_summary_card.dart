@@ -6,21 +6,14 @@ import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
 import '../cards/soft_card.dart';
 import 'accuracy_progress_bar.dart';
-import 'attempt_sparkline.dart';
-
-enum StatsSummaryLayout { stacked, landingRow }
 
 final class StatsSummaryCard extends StatelessWidget {
   const StatsSummaryCard({
     super.key,
     required this.summary,
-    required this.series,
-    this.layout = StatsSummaryLayout.stacked,
   });
 
   final StatsSummary summary;
-  final List<double> series;
-  final StatsSummaryLayout layout;
 
   @override
   Widget build(BuildContext context) {
@@ -56,38 +49,6 @@ final class StatsSummaryCard extends StatelessWidget {
         ),
       );
     }
-    if (layout == StatsSummaryLayout.landingRow) {
-      return SoftCard(
-        child: Row(
-          children: [
-            Expanded(
-              child: _LandingMetric(
-                label: AppStrings.attempts,
-                value: '${summary.total}',
-                valueColor: DesignTokens.green400,
-              ),
-            ),
-            Expanded(
-              child: _LandingMetric(
-                label: AppStrings.accuracy,
-                value: '${(summary.accuracy * 100).round()}%',
-                valueColor: DesignTokens.violet400,
-                progress: summary.accuracy,
-              ),
-            ),
-            Expanded(
-              child: _LandingMetric(
-                label: AppStrings.avgTime,
-                value: summary.avgLatencyMs == null
-                    ? '—'
-                    : '${summary.avgLatencyMs} ms',
-                valueColor: const Color(0xFF0891B2),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
 
     return SoftCard(
       child: Column(
@@ -101,67 +62,8 @@ final class StatsSummaryCard extends StatelessWidget {
                 ? '—'
                 : '${summary.avgLatencyMs} ms',
           ),
-          if (series.length > 1) ...[
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              AppStrings.statsActivity,
-              style: t.labelLarge?.copyWith(
-                color: DesignTokens.slate300,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AttemptSparkline(series: series),
-          ],
         ],
       ),
-    );
-  }
-}
-
-final class _LandingMetric extends StatelessWidget {
-  const _LandingMetric({
-    required this.label,
-    required this.value,
-    required this.valueColor,
-    this.progress,
-  });
-
-  final String label;
-  final String value;
-  final Color valueColor;
-  final double? progress;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
-    return Column(
-      children: [
-        Text(
-          value,
-          style: t.titleMedium?.copyWith(
-            color: valueColor,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        if (progress != null) ...[
-          const SizedBox(height: 6),
-          AccuracyProgressBar(
-            accuracy: progress!,
-            height: 6,
-            useGradient: false,
-          ),
-        ],
-        const SizedBox(height: 4),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: t.labelSmall?.copyWith(
-            color: DesignTokens.slate500,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
     );
   }
 }

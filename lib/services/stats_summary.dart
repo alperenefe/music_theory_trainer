@@ -69,7 +69,13 @@ StatsSummary summarizeAttempts(List<PracticeAttempt> rows) {
             ),
           )
           .toList()
-        ..sort((a, b) => a.midi.compareTo(b.midi));
+        ..sort((a, b) {
+          final byAccuracy = a.accuracy.compareTo(b.accuracy);
+          if (byAccuracy != 0) {
+            return byAccuracy;
+          }
+          return a.midi.compareTo(b.midi);
+        });
   return StatsSummary(
     total: rows.length,
     correct: c,
