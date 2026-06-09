@@ -26,11 +26,18 @@ final class IntervalQuestion {
         up: up,
       );
 
-  static IntervalQuestion random(Random rnd, int minMidi, int maxMidi) {
+  static IntervalQuestion random(
+    Random rnd,
+    int minMidi,
+    int maxMidi, {
+    List<IntervalKind>? allowedKinds,
+  }) {
+    final kinds = (allowedKinds == null || allowedKinds.isEmpty)
+        ? MusicInterval.practiceSet
+        : allowedKinds;
     const maxTries = 64;
     for (var t = 0; t < maxTries; t++) {
-      final kind = MusicInterval.practiceSet[
-          rnd.nextInt(MusicInterval.practiceSet.length)];
+      final kind = kinds[rnd.nextInt(kinds.length)];
       final up = rnd.nextBool();
       final root = minMidi + rnd.nextInt(max(1, maxMidi - minMidi + 1));
       final answer = MusicInterval.apply(root, kind, up: up);
@@ -43,8 +50,7 @@ final class IntervalQuestion {
       var guard = 0;
       while (wrongMidis.length < 3 && guard < 40) {
         guard++;
-        final altKind = MusicInterval.practiceSet[
-            rnd.nextInt(MusicInterval.practiceSet.length)];
+        final altKind = kinds[rnd.nextInt(kinds.length)];
         final altUp = rnd.nextBool();
         var w = MusicInterval.apply(root, altKind, up: altUp);
         if (w < minMidi || w > maxMidi) {

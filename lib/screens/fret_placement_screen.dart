@@ -148,6 +148,9 @@ final class _FretPlacementScreenState extends State<FretPlacementScreen> {
     final h = await _repo.load();
     if (!mounted) return;
     _session.record(ok);
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _history = PracticeHistory.forExercise(h, AppStrings.exerciseGuitarFind);
       _selected = note;

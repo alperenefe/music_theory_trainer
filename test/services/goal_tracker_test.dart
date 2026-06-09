@@ -106,6 +106,9 @@ void main() {
       after.exerciseGoals[GoalKind.mcq]!.startedAtMillis,
       greaterThan(500),
     );
+    expect(after.completedGoals, hasLength(1));
+    expect(after.completedGoals.first.goalTitle, isNotEmpty);
+    expect(after.completedGoals.first.total, 2);
   });
 
   test('paralel hedefler birbirini etkilemez', () async {

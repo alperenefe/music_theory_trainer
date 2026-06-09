@@ -104,6 +104,9 @@ final class _McqScreenState extends State<McqScreen> {
       return;
     }
     _session.record(ok);
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _history = PracticeHistory.forExercise(h, AppStrings.exerciseMcq);
       _picked = label;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../l10n/app_strings.dart';
-import '../services/goal_tracker.dart';
+import '../models/goal_completion_report.dart';
 import '../utils/stats_midi_label.dart';
 import '../theme/app_spacing.dart';
 import '../theme/design_tokens.dart';

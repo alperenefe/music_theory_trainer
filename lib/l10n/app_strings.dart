@@ -24,10 +24,12 @@ abstract final class AppStrings {
   static const mcqTitle = 'Notayı tanı';
   static const mcqDesc = 'Portede gösterilen notanın adını seç.';
   static const statsTitle = 'İstatistikler';
-  static const statsDesc = 'Son denemeler ve ortalama süre.';
+  static const statsDesc = 'Deneme, doğruluk ve ortalama süre.';
   static const exerciseStatsTitle = 'İstatistikler';
   static const exerciseStatsEmpty = 'Henüz bu etkinlikte deneme yok.';
   static String exerciseStatsWindow(int n) => 'Son $n deneme';
+  static const exerciseStatsGoalPeriod =
+      'Bu hedef dönemi — nota istatistikleri sıfırdan';
   static const clearExerciseStats = 'Bu etkinliğin kayıtlarını sil';
   static const clearExerciseStatsTitle = 'Etkinlik kayıtları silinsin mi?';
   static const clearExerciseStatsBody =
@@ -77,35 +79,42 @@ abstract final class AppStrings {
   static const goalSpeedTargetSection = 'Süre hedefi (ortalama)';
   static const goalSpeedTargetHint =
       'Bu sürenin altında ortalama kalırsan hız hedefi tutar.';
+  static const goalSpeedTargetHintShort =
+      'Ortalama bu sürenin altında olmalı.';
   static const exercisePrefsGoalLine = 'Hedef';
   static const exercisePrefsGoalOtherExercise =
       'Seçili hedef başka bir alıştırmada.';
   static const goalsTitle = 'Hedef ve aralık';
   static const replayOnboarding = 'Tanıtımı tekrar göster';
   static const goalsDesc =
-      'Her etkinlik için ayrı hedef; ana ekranda kartların altında ilerleme görünür.';
+      'Açık hedefler ana ekranda ilerleme çubuğu gösterir.';
+  static const customWorkoutTitle = 'Özel antrenman';
+  static const customWorkoutDesc =
+      'Egzersiz türü, nota aralığı ve (aralık modunda) çalışılacak aralıkları seç.';
+  static const customWorkoutExerciseSection = 'Egzersiz';
+  static const customWorkoutIntervalSection = 'Aralık türleri';
+  static const customWorkoutStart = 'Antrenmana başla';
+  static const customWorkoutSave = 'Ayarları kaydet';
   static const goalPerActivitySection = 'Etkinlik hedefleri';
-  static const goalEnabledHint = 'Hedef açık';
-  static const goalDisabledHint = 'Hedef kapalı — ana ekranda progress yok';
+  static const goalCompletedHistorySection = 'Tamamlanan hedefler';
+  static const goalCompletedHistoryEmpty =
+      'Henüz tamamlanan hedef yok. Bir hedefi bitirdiğinde burada görünür.';
+  static String goalCompletedHistoryLine({
+    required String date,
+    required int target,
+    required int accuracyPercent,
+  }) =>
+      '$date · $target deneme · %$accuracyPercent';
   static const goalKindSection = 'Aktif hedef türü';
   static const goalTargetSection = 'Hedef adedi';
   static const goalRangeSection = 'Nota aralığı';
   static const goalMinMidi = 'En düşük nota';
   static const goalMaxMidi = 'En yüksek nota';
   static const goalSave = 'Kaydet';
-  static const appUpdateSection = 'Uygulama güncellemesi';
+  static const appUpdateSection = 'Uzaktan güncelleme';
   static const appUpdateHint =
-      'Firebase dağıtımındaki son sürümü kontrol eder. İlk seferde Google hesabınla tester girişi istenir; e-posta gerekmez.';
-  static const appUpdateCheck = 'Güncellemeyi kontrol et';
-  static const appUpdateUpToDate = 'Uygulama güncel.';
-  static const appUpdateStarted =
-      'Yeni sürüm bulundu — indirme ve kurulum başladı.';
-  static const appUpdateDebugOnly =
-      'Uygulama içi güncelleme yalnızca release build ile çalışır (CI APK).';
-  static const appUpdateFirebaseMissing =
-      'Firebase yapılandırması eksik. android/app/google-services.json ekle (docs/CI_CD_FIREBASE.md).';
-  static const appUpdateFailed =
-      'Güncelleme kontrolü başarısız. Tester hesabı ve internet bağlantısını kontrol et.';
+      'Telefonda indir/kur yok. PC (Tailscale): fast-phone -Project music -Wireless. '
+      'İlk kez: phone-adb-setup.ps1 (USB).';
   static const goalNone = 'Hedef yok';
   static const goalActive = 'Aktif hedef';
   static const goalCompletedTitle = 'Hedef tamamlandı';
@@ -190,7 +199,10 @@ abstract final class AppStrings {
   static const soundOn = 'Ses açık';
   static const soundOff = 'Ses kapalı';
   static const soundHint = 'Uygulama sesleri ve gitar önizlemesi';
-  static const statsActivity = 'Son denemeler (doğruluk eğilimi)';
+  static String statsNoteEncounters(int n) => '$n karşılaşma';
+  static String statsNoteSectionCount(int n) => '$n nota';
+  static const statsNotePickerHint =
+      'Hedef seçici bu notada son 2 denemeye bakar';
   static const emptyStateHint = 'İlk denemen burada görünecek.';
 
   static const ob1Title = 'Hızlı başlangıç';

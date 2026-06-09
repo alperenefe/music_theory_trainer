@@ -7,6 +7,7 @@ import '../models/practice_prefs.dart';
 import '../services/practice_prefs_repository.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
 import '../widgets/onboarding/app_onboarding_dialog.dart';
+import 'custom_workout_screen.dart';
 import 'goals/goals_screen_body.dart';
 
 final class GoalsScreen extends StatefulWidget {
@@ -107,13 +108,18 @@ final class _GoalsScreenState extends State<GoalsScreen> {
           startedAtMillis: prevG.startedAtMillis,
         );
       } else {
-        savedGoals[kind] = g;
+        final now = DateTime.now().millisecondsSinceEpoch;
+        savedGoals[kind] = g.enabled && g.startedAtMillis <= 0
+            ? g.copyWith(startedAtMillis: now, progress: 0)
+            : g;
       }
     }
     final next = PracticePrefs(
       poolMinMidi: lo,
       poolMaxMidi: hi,
       exerciseGoals: savedGoals,
+      completedGoals: prev.completedGoals,
+      customWorkout: prev.customWorkout,
       soundEnabled: _soundEnabled,
       onboardingDone: prev.onboardingDone,
       referenceA4Hz: prev.referenceA4Hz,
@@ -147,6 +153,7 @@ final class _GoalsScreenState extends State<GoalsScreen> {
               }
               return GoalsScreenBody(
                 midiChoices: _midiChoices,
+                completedGoals: snap.data!.completedGoals,
                 goalsByKind: _goalsByKind,
                 onGoalChanged: _onGoalChanged,
                 minMidi: _minMidi,
@@ -160,6 +167,13 @@ final class _GoalsScreenState extends State<GoalsScreen> {
                   context: context,
                   repo: widget.repo,
                 ),
+                onOpenCustomWorkout: () {
+                  Navigator.of(context).push<void>(
+                    MaterialPageRoute<void>(
+                      builder: (_) => CustomWorkoutScreen(repo: widget.repo),
+                    ),
+                  );
+                },
               );
             },
           ),

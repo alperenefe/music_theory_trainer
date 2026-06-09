@@ -29,6 +29,9 @@ void main() {
         contains('3lü'),
         contains('4lü'),
         contains('5li'),
+        contains('6lı'),
+        contains('7li'),
+        contains('tritonus'),
       ),
     );
     expect(q.prompt, isNot(contains('oktav')));

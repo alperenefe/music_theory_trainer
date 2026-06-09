@@ -114,6 +114,9 @@ final class _PlacementScreenState extends State<PlacementScreen> {
       return;
     }
     _session.record(ok);
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _history = PracticeHistory.forExercise(h, AppStrings.exercisePlacement);
       _lastOk = ok;

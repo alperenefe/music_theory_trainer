@@ -10,11 +10,13 @@ import '../services/practice_prefs_repository.dart';
 import '../services/practice_session_tracker.dart';
 import '../services/stats_repository.dart';
 import '../theory/interval_question.dart';
+import '../theory/music_interval.dart';
 import '../theme/app_spacing.dart';
 import '../theme/design_tokens.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
 import '../widgets/exercise/feedback_bottom_bar.dart';
 import '../widgets/exercise/mcq_choice_list.dart';
+import '../widgets/theory/interval_staff_preview.dart';
 import '../widgets/exercise/exercise_screen_top_bar.dart';
 import '../widgets/text/section_header.dart';
 import 'goal_completion_screen.dart';
@@ -24,10 +26,12 @@ final class IntervalMcqScreen extends StatefulWidget {
     super.key,
     required this.poolMinMidi,
     required this.poolMaxMidi,
+    this.allowedIntervalKinds,
   });
 
   final int poolMinMidi;
   final int poolMaxMidi;
+  final List<IntervalKind>? allowedIntervalKinds;
 
   @override
   State<IntervalMcqScreen> createState() => _IntervalMcqScreenState();
@@ -55,7 +59,12 @@ final class _IntervalMcqScreenState extends State<IntervalMcqScreen> {
 
   void _newQuestion() {
     setState(() {
-      _q = IntervalQuestion.random(_rnd, widget.poolMinMidi, widget.poolMaxMidi);
+      _q = IntervalQuestion.random(
+        _rnd,
+        widget.poolMinMidi,
+        widget.poolMaxMidi,
+        allowedKinds: widget.allowedIntervalKinds,
+      );
       _t0 = DateTime.now().millisecondsSinceEpoch;
       _feedback = false;
       _lastOk = false;
@@ -84,6 +93,9 @@ final class _IntervalMcqScreenState extends State<IntervalMcqScreen> {
       return;
     }
     _session.record(ok);
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _picked = label;
       _feedback = true;
@@ -149,6 +161,12 @@ final class _IntervalMcqScreenState extends State<IntervalMcqScreen> {
                               color: DesignTokens.white,
                               fontWeight: FontWeight.w800,
                             ),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          IntervalStaffPreview(
+                            rootMidi: _q.rootMidi,
+                            answerMidi: _q.answerMidi,
+                            showAnswer: _feedback,
                           ),
                           const SizedBox(height: AppSpacing.md),
                           McqChoiceList(

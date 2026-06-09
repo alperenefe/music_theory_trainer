@@ -1,28 +1,12 @@
 import '../config/goal_kind.dart';
+import '../models/completed_goal_record.dart';
+import '../models/goal_completion_report.dart';
 import '../models/practice_attempt.dart';
 import '../services/practice_prefs_repository.dart';
 import '../services/stats_repository.dart';
 import '../services/stats_summary.dart';
 
-final class GoalCompletionReport {
-  const GoalCompletionReport({
-    required this.goalTitle,
-    required this.target,
-    required this.summary,
-    required this.bestStreak,
-    required this.totalWrong,
-    this.medianLatencyMs,
-    required this.totalThinkingMs,
-  });
-
-  final String goalTitle;
-  final int target;
-  final StatsSummary summary;
-  final int bestStreak;
-  final int totalWrong;
-  final int? medianLatencyMs;
-  final int totalThinkingMs;
-}
+export '../models/goal_completion_report.dart';
 
 final class GoalTracker {
   static Future<GoalCompletionReport?> onAttemptRecorded({
@@ -74,11 +58,18 @@ final class GoalTracker {
       totalThinkingMs: think,
     );
     final now = DateTime.now().millisecondsSinceEpoch;
+    final record = CompletedGoalRecord.fromReport(
+      kind: kind,
+      report: report,
+      completedAtMillis: now,
+    );
     await prefsRepo.save(
-      prefs.withGoal(
-        kind,
-        goal.copyWith(progress: 0, startedAtMillis: now),
-      ),
+      prefs
+          .withGoal(
+            kind,
+            goal.copyWith(progress: 0, startedAtMillis: now),
+          )
+          .withCompletedGoal(record),
     );
     return report;
   }

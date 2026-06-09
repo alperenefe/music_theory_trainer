@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'l10n/app_strings.dart';
 import 'screens/home_screen.dart';
-import 'services/app_distribution_update.dart';
 import 'theme/app_theme.dart';
 
 final class MusicTheoryApp extends StatefulWidget {
@@ -13,14 +12,6 @@ final class MusicTheoryApp extends StatefulWidget {
 }
 
 final class _MusicTheoryAppState extends State<MusicTheoryApp> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      AppDistributionUpdate.checkFromApp();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

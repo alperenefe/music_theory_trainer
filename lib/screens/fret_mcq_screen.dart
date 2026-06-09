@@ -118,6 +118,9 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
     final h = await _repo.load();
     if (!mounted) return;
     _session.record(ok);
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _history = PracticeHistory.forExercise(h, AppStrings.exerciseGuitarMcq);
       _picked = label;

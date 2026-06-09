@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../config/goal_kind.dart';
 import '../../l10n/app_strings.dart';
+import '../../models/completed_goal_record.dart';
 import '../../models/exercise_goal.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
@@ -9,7 +9,8 @@ import '../../widgets/text/section_header.dart';
 import 'goal_midi_range_card.dart';
 import '../../widgets/settings/app_update_card.dart';
 import 'goal_sound_switch_card.dart';
-import 'per_activity_goal_tile.dart';
+import 'completed_goals_history_section.dart';
+import 'per_activity_goals_section.dart';
 
 final class GoalsScreenBody extends StatelessWidget {
   const GoalsScreenBody({
@@ -24,7 +25,9 @@ final class GoalsScreenBody extends StatelessWidget {
     required this.soundEnabled,
     required this.onSoundChanged,
     required this.onSave,
+    required this.completedGoals,
     this.onReplayOnboarding,
+    this.onOpenCustomWorkout,
   });
 
   final List<int> midiChoices;
@@ -37,10 +40,9 @@ final class GoalsScreenBody extends StatelessWidget {
   final bool soundEnabled;
   final ValueChanged<bool> onSoundChanged;
   final VoidCallback onSave;
+  final List<CompletedGoalRecord> completedGoals;
   final VoidCallback? onReplayOnboarding;
-
-  ExerciseGoal _goalFor(String kind) =>
-      goalsByKind[kind] ?? const ExerciseGoal();
+  final VoidCallback? onOpenCustomWorkout;
 
   @override
   Widget build(BuildContext context) {
@@ -78,6 +80,10 @@ final class GoalsScreenBody extends StatelessWidget {
               SectionHeader(
                 title: AppStrings.goalsTitle,
                 subtitle: AppStrings.goalsDesc,
+                subtitleStyle: t.bodySmall?.copyWith(
+                  color: DesignTokens.slate500,
+                  height: 1.35,
+                ),
               ),
               const SizedBox(height: AppSpacing.md),
               Text(
@@ -88,14 +94,21 @@ final class GoalsScreenBody extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
-              for (final kind in GoalKind.practiceKinds) ...[
-                PerActivityGoalTile(
-                  kind: kind,
-                  goal: _goalFor(kind),
-                  onChanged: (g) => onGoalChanged(kind, g),
+              PerActivityGoalsSection(
+                goalsByKind: goalsByKind,
+                onGoalChanged: onGoalChanged,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              CompletedGoalsHistorySection(records: completedGoals),
+              if (onOpenCustomWorkout != null) ...[
+                const SizedBox(height: AppSpacing.lg),
+                OutlinedButton.icon(
+                  onPressed: onOpenCustomWorkout,
+                  icon: const Icon(Icons.tune_rounded),
+                  label: Text(AppStrings.customWorkoutTitle),
                 ),
-                const SizedBox(height: AppSpacing.md),
               ],
+              const SizedBox(height: AppSpacing.lg),
               GoalMidiRangeCard(
                 midiChoices: midiChoices,
                 minMidi: minMidi,

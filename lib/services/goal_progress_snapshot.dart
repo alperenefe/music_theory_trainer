@@ -1,6 +1,7 @@
 import '../config/goal_kind.dart';
 import '../models/practice_attempt.dart';
 import '../models/practice_prefs.dart';
+import '../services/goal_period_attempts.dart';
 import '../services/stats_summary.dart';
 
 final class GoalProgressSnapshot {
@@ -54,16 +55,12 @@ final class GoalProgressSnapshot {
     if (ex == null) {
       return null;
     }
-    final started = goal.startedAtMillis;
-    final rows = all.where((r) {
-      if (r.exercise != ex) {
-        return false;
-      }
-      if (started > 0) {
-        return r.atMillis >= started;
-      }
-      return true;
-    }).toList();
+    final rows = GoalPeriodAttempts.forExercise(
+      all: all,
+      exerciseId: ex,
+      goal: goal,
+      limit: 100000,
+    );
     final summary = summarizeAttempts(rows);
     return GoalProgressSnapshot(
       goalTitle: GoalKind.titleWithFallback(kind),

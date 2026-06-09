@@ -1,3 +1,5 @@
+import 'completed_goal_record.dart';
+import 'custom_workout.dart';
 import 'exercise_goal.dart';
 
 final class PracticePrefs {
@@ -9,6 +11,8 @@ final class PracticePrefs {
     this.poolMinMidi = PracticePrefs.defaultPoolMinMidi,
     this.poolMaxMidi = PracticePrefs.defaultPoolMaxMidi,
     this.exerciseGoals = const {},
+    this.completedGoals = const [],
+    this.customWorkout,
     this.soundEnabled = true,
     this.onboardingDone = false,
     this.referenceA4Hz = PracticePrefs.defaultReferenceA4Hz,
@@ -17,6 +21,8 @@ final class PracticePrefs {
   final int poolMinMidi;
   final int poolMaxMidi;
   final Map<String, ExerciseGoal> exerciseGoals;
+  final List<CompletedGoalRecord> completedGoals;
+  final CustomWorkout? customWorkout;
   final bool soundEnabled;
   final bool onboardingDone;
   final double referenceA4Hz;
@@ -39,10 +45,20 @@ final class PracticePrefs {
     return copyWith(exerciseGoals: next);
   }
 
+  PracticePrefs withCompletedGoal(CompletedGoalRecord record) {
+    final next = [record, ...completedGoals];
+    final capped = next.length > CompletedGoalRecord.maxStored
+        ? next.sublist(0, CompletedGoalRecord.maxStored)
+        : next;
+    return copyWith(completedGoals: capped);
+  }
+
   PracticePrefs copyWith({
     int? poolMinMidi,
     int? poolMaxMidi,
     Map<String, ExerciseGoal>? exerciseGoals,
+    List<CompletedGoalRecord>? completedGoals,
+    CustomWorkout? customWorkout,
     bool? soundEnabled,
     bool? onboardingDone,
     double? referenceA4Hz,
@@ -51,6 +67,8 @@ final class PracticePrefs {
       poolMinMidi: poolMinMidi ?? this.poolMinMidi,
       poolMaxMidi: poolMaxMidi ?? this.poolMaxMidi,
       exerciseGoals: exerciseGoals ?? this.exerciseGoals,
+      completedGoals: completedGoals ?? this.completedGoals,
+      customWorkout: customWorkout ?? this.customWorkout,
       soundEnabled: soundEnabled ?? this.soundEnabled,
       onboardingDone: onboardingDone ?? this.onboardingDone,
       referenceA4Hz: referenceA4Hz ?? this.referenceA4Hz,
@@ -63,6 +81,8 @@ final class PracticePrefs {
     'exerciseGoals': exerciseGoals.map(
       (k, v) => MapEntry(k, v.toJson()),
     ),
+    'completedGoals': completedGoals.map((e) => e.toJson()).toList(),
+    if (customWorkout != null) 'customWorkout': customWorkout!.toJson(),
     'soundEnabled': soundEnabled,
     'onboardingDone': onboardingDone,
     'referenceA4Hz': referenceA4Hz,
@@ -107,15 +127,48 @@ final class PracticePrefs {
     }
 
     final goals = _parseExerciseGoals(j, ni);
+    final completed = _parseCompletedGoals(j);
+    final custom = _parseCustomWorkout(j);
 
     return PracticePrefs(
       poolMinMidi: ni(j['poolMinMidi'], defaultPoolMinMidi),
       poolMaxMidi: ni(j['poolMaxMidi'], defaultPoolMaxMidi),
       exerciseGoals: goals,
+      completedGoals: completed,
+      customWorkout: custom,
       soundEnabled: soundEnabled,
       onboardingDone: onboardingDone,
       referenceA4Hz: ref,
     );
+  }
+
+  static CustomWorkout? _parseCustomWorkout(Map<String, Object?> j) {
+    final raw = j['customWorkout'];
+    if (raw is! Map) {
+      return null;
+    }
+    return CustomWorkout.fromJson(Map<String, Object?>.from(raw));
+  }
+
+  static List<CompletedGoalRecord> _parseCompletedGoals(
+    Map<String, Object?> j,
+  ) {
+    final raw = j['completedGoals'];
+    if (raw is! List) {
+      return const [];
+    }
+    final out = <CompletedGoalRecord>[];
+    for (final e in raw) {
+      if (e is Map) {
+        out.add(
+          CompletedGoalRecord.fromJson(Map<String, Object?>.from(e)),
+        );
+      }
+    }
+    if (out.length > CompletedGoalRecord.maxStored) {
+      return out.sublist(0, CompletedGoalRecord.maxStored);
+    }
+    return out;
   }
 
   static Map<String, ExerciseGoal> _parseExerciseGoals(

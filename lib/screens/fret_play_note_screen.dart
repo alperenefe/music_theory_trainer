@@ -372,6 +372,9 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
       return;
     }
     _session.record(true);
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _history = PracticeHistory.forExercise(h, AppStrings.exerciseGuitarPlay);
       _lastOk = true;
@@ -408,6 +411,19 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
       );
     }
     final t = Theme.of(context).textTheme;
+    final micTrailing = _listening
+        ? IconButton(
+            onPressed: _feedback ? null : _stopMic,
+            tooltip: AppStrings.guitarPlayStop,
+            icon: const Icon(Icons.mic_off_rounded),
+            color: DesignTokens.slate200,
+          )
+        : IconButton(
+            onPressed: _feedback ? null : _tryStartMic,
+            tooltip: AppStrings.tunerMicResume,
+            icon: const Icon(Icons.mic_rounded),
+            color: DesignTokens.blue500,
+          );
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -422,19 +438,7 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
                       title: AppStrings.guitarPlayTitle,
                       sessionCorrect: _session.correct,
                       sessionTotal: _session.total,
-                      trailing: _listening
-                          ? IconButton(
-                              onPressed: _feedback ? null : _stopMic,
-                              tooltip: AppStrings.guitarPlayStop,
-                              icon: const Icon(Icons.mic_off_rounded),
-                              color: DesignTokens.slate200,
-                            )
-                          : IconButton(
-                              onPressed: _feedback ? null : _tryStartMic,
-                              tooltip: AppStrings.tunerMicResume,
-                              icon: const Icon(Icons.mic_rounded),
-                              color: DesignTokens.blue500,
-                            ),
+                      trailing: micTrailing,
                     ),
                     Expanded(
                       child: ListView(

@@ -147,6 +147,9 @@ final class _ScaleSequenceScreenState extends State<ScaleSequenceScreen> {
       return;
     }
     _session.record(correct);
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _feedback = correct;
       _lastOk = correct;

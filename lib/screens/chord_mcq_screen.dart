@@ -16,6 +16,7 @@ import '../widgets/background/mesh_gradient_backdrop.dart';
 import '../widgets/exercise/feedback_bottom_bar.dart';
 import '../widgets/exercise/exercise_screen_top_bar.dart';
 import '../widgets/exercise/mcq_choice_list.dart';
+import '../widgets/theory/chord_staff_preview.dart';
 import '../widgets/text/section_header.dart';
 import 'goal_completion_screen.dart';
 
@@ -65,8 +66,8 @@ final class _ChordMcqScreenState extends State<ChordMcqScreen> {
   void _newQuestion() {
     _rootMidi = widget.poolMinMidi +
         _rnd.nextInt(max(1, widget.poolMaxMidi - widget.poolMinMidi + 1));
-    _quality = _rnd.nextBool() ? ChordQuality.major : ChordQuality.minor;
-    _notes = MusicChord.triad(_rootMidi, _quality);
+    _quality = MusicChord.randomQuality(_rnd);
+    _notes = MusicChord.chordNotes(_rootMidi, _quality);
     _mode = _rnd.nextBool()
         ? _ChordQMode.notesFromName
         : _ChordQMode.nameFromNotes;
@@ -117,6 +118,9 @@ final class _ChordMcqScreenState extends State<ChordMcqScreen> {
       return;
     }
     _session.record(ok);
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _picked = label;
       _feedback = true;
@@ -185,6 +189,14 @@ final class _ChordMcqScreenState extends State<ChordMcqScreen> {
                               fontWeight: FontWeight.w800,
                               height: 1.3,
                             ),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          ChordStaffPreview(
+                            chordMidis: _notes,
+                            visible:
+                                _mode == _ChordQMode.nameFromNotes ||
+                                _feedback,
+                            highlightOnFeedback: _feedback,
                           ),
                           const SizedBox(height: AppSpacing.md),
                           McqChoiceList(

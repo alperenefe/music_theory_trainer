@@ -6,7 +6,12 @@ enum IntervalKind {
   minorThird,
   majorThird,
   perfectFourth,
+  tritone,
   perfectFifth,
+  minorSixth,
+  majorSixth,
+  minorSeventh,
+  majorSeventh,
   octave,
 }
 
@@ -17,7 +22,12 @@ abstract final class MusicInterval {
     IntervalKind.minorThird: 3,
     IntervalKind.majorThird: 4,
     IntervalKind.perfectFourth: 5,
+    IntervalKind.tritone: 6,
     IntervalKind.perfectFifth: 7,
+    IntervalKind.minorSixth: 8,
+    IntervalKind.majorSixth: 9,
+    IntervalKind.minorSeventh: 10,
+    IntervalKind.majorSeventh: 11,
     IntervalKind.octave: 12,
   };
 
@@ -27,7 +37,12 @@ abstract final class MusicInterval {
         IntervalKind.minorThird => 'küçük 3lü',
         IntervalKind.majorThird => 'büyük 3lü',
         IntervalKind.perfectFourth => 'tam 4lü',
+        IntervalKind.tritone => 'tritonus',
         IntervalKind.perfectFifth => 'tam 5li',
+        IntervalKind.minorSixth => 'küçük 6lı',
+        IntervalKind.majorSixth => 'büyük 6lı',
+        IntervalKind.minorSeventh => 'küçük 7li',
+        IntervalKind.majorSeventh => 'büyük 7li',
         IntervalKind.octave => 'oktav',
       };
 
@@ -48,14 +63,19 @@ abstract final class MusicInterval {
     return null;
   }
 
-  /// Oktav yok — günlük aralık pratiği (2–5 arası dereceler).
+  /// Oktav hariç tam aralık seti (ZIP INTERVALS_TURKISH ile uyumlu).
   static const List<IntervalKind> practiceSet = [
     IntervalKind.minorSecond,
     IntervalKind.majorSecond,
     IntervalKind.minorThird,
     IntervalKind.majorThird,
     IntervalKind.perfectFourth,
+    IntervalKind.tritone,
     IntervalKind.perfectFifth,
+    IntervalKind.minorSixth,
+    IntervalKind.majorSixth,
+    IntervalKind.minorSeventh,
+    IntervalKind.majorSeventh,
   ];
 
   static int clampMidi(int m, int lo, int hi) => m.clamp(lo, hi);

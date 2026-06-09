@@ -102,6 +102,36 @@ final class AppTheme {
           ),
         ),
       ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(44, 44),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          foregroundColor: DesignTokens.slate200,
+          side: const BorderSide(color: DesignTokens.borderSubtle),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: DesignTokens.slate800,
+        selectedColor: DesignTokens.blue600.withValues(alpha: 0.22),
+        disabledColor: DesignTokens.slate900,
+        labelStyle: textTheme.labelMedium?.copyWith(
+          color: DesignTokens.slate300,
+          fontWeight: FontWeight.w600,
+        ),
+        secondaryLabelStyle: textTheme.labelMedium?.copyWith(
+          color: DesignTokens.white,
+          fontWeight: FontWeight.w700,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        side: const BorderSide(color: DesignTokens.borderSubtle),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        showCheckmark: false,
+      ),
       cardTheme: CardThemeData(
         color: DesignTokens.cardBg,
         elevation: 0,
