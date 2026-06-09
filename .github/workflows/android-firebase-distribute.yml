@@ -109,6 +109,9 @@ jobs:
       - name: Build release APK
         run: |
           flutter build apk --release \
+            --target-platform android-arm64 \
+            --no-pub \
+            --no-tree-shake-icons \
             --build-name="${{ steps.version.outputs.name }}" \
             --build-number="${{ steps.version.outputs.code }}"
 
