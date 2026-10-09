@@ -4,17 +4,16 @@ import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
 import '../motion/motion_entrance.dart';
 
-/// Ana sayfa alt kısayollar: Akort (dolu cyan) + Hedefler (outline).
+/// Ana sayfa kısayolu: Hedefler.
+///
+/// Kulak eğitimine buradan ayrı bir "Kulak Eğitimi" düğmesiyle de
+/// gidiliyordu — hemen üstteki [EarTrainingBanner] zaten aynı hedefe
+/// giden, çok daha görünür ve bilgilendirici (hafta/ilerleme gösteren) bir
+/// giriş noktası. İkisi yan yana aynı ekranda tekrar ediyordu; bu satır
+/// artık sadece Hedefler'e gidiyor.
 final class HomeTwinCtaRow extends StatelessWidget {
-  const HomeTwinCtaRow({
-    super.key,
-    required this.onTunerTap,
-    required this.onGoalsTap,
-  });
+  const HomeTwinCtaRow({super.key, required this.onGoalsTap});
 
-  static const _tunerCyan = Color(0xFF0891B2);
-
-  final VoidCallback onTunerTap;
   final VoidCallback onGoalsTap;
 
   @override
@@ -26,31 +25,13 @@ final class HomeTwinCtaRow extends StatelessWidget {
       letterSpacing: 0.6,
     );
 
-    return Row(
-        children: [
-          Expanded(
-            child: _CtaButton(
-              key: const Key('home_card_akort'),
-              label: AppStrings.homeCtaTuner,
-              icon: Icons.tune_rounded,
-              filled: true,
-              background: _tunerCyan,
-              onTap: onTunerTap,
-              labelStyle: labelStyle,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: _CtaButton(
-              key: const Key('home_card_hedefler'),
-              label: AppStrings.homeCtaGoals,
-              icon: Icons.flag_rounded,
-              filled: false,
-              onTap: onGoalsTap,
-              labelStyle: labelStyle,
-            ),
-          ),
-        ],
+    return _CtaButton(
+      key: const Key('home_card_hedefler'),
+      label: AppStrings.homeCtaGoals,
+      icon: Icons.flag_rounded,
+      filled: false,
+      onTap: onGoalsTap,
+      labelStyle: labelStyle,
     ).entranceFadeSlide(
       context,
       slideY: 0.06,

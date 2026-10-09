@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
 import '../models/practice_attempt.dart';
+import '../models/practice_prefs.dart';
 import '../services/goal_tracker.dart';
 import '../services/guitar_audio_service.dart';
 import '../services/practice_prefs_repository.dart';
@@ -50,11 +51,21 @@ final class _IntervalMcqScreenState extends State<IntervalMcqScreen> {
   String? _picked;
   String? _wrongYour;
   String? _wrongCorrect;
+  var _refA4 = PracticePrefs.defaultReferenceA4Hz;
 
   @override
   void initState() {
     super.initState();
     _newQuestion();
+    _loadPrefsRef();
+  }
+
+  Future<void> _loadPrefsRef() async {
+    final p = await _prefsRepo.load();
+    if (!mounted) {
+      return;
+    }
+    setState(() => _refA4 = p.referenceA4Hz);
   }
 
   void _newQuestion() {
@@ -106,7 +117,7 @@ final class _IntervalMcqScreenState extends State<IntervalMcqScreen> {
       }
     });
     if (ok) {
-      await _audio.playMidi(_q.answerMidi);
+      await _audio.playMidi(_q.answerMidi, referenceA4: _refA4);
     }
     final done = await GoalTracker.onAttemptRecorded(
       exercise: AppStrings.exerciseInterval,

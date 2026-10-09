@@ -20,6 +20,7 @@ abstract final class AppSpacing {
     horizontal: lg,
     vertical: md,
   );
+  static const double cardInner = md;
   static const double cardGap = md;
   static const double sectionGap = xl;
   static const double listItemGap = sm;

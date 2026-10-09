@@ -111,6 +111,16 @@ final class StaffGeometry {
     return (gap * 5.5).clamp(40.0, 64.0);
   }
 
+  /// İki ana çizgi arası yarım aralık — nota kafası ölçeklemesi için.
+  double get halfLineSpacing {
+    final gap = (yForSlot(0) - yForSlot(2)).abs() / 2;
+    return gap.clamp(6.0, 24.0);
+  }
+
+  double get noteHeadWidth => (halfLineSpacing * 2.15).clamp(20.0, 30.0);
+
+  double get noteHeadHeight => (halfLineSpacing * 1.35).clamp(12.0, 20.0);
+
   int nearestSlotForY(double y, Iterable<int> slots) {
     var best = slots.first;
     var bestD = (y - yForSlot(best)).abs();

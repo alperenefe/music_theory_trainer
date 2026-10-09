@@ -15,12 +15,14 @@ final class McqStaffCard extends StatelessWidget {
     required this.targetStaffSlot,
     this.wrongHighlightSlot,
     this.correctHighlightSlot,
+    this.landmarkSlots = const [],
   });
 
   final List<NotationPitch> pool;
   final int targetStaffSlot;
   final int? wrongHighlightSlot;
   final int? correctHighlightSlot;
+  final List<int> landmarkSlots;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +39,7 @@ final class McqStaffCard extends StatelessWidget {
           notes: [TrebleStaffNoteSpec(slot: targetStaffSlot)],
           wrongHighlightSlot: wrongHighlightSlot,
           correctHighlightSlot: correctHighlightSlot,
+          landmarkSlots: landmarkSlots,
           onSlot: (_) {},
         ),
       ),
@@ -56,6 +59,7 @@ final class PlacementStaffCard extends StatelessWidget {
     this.correctHighlightSlot,
     this.expandToFill = false,
     this.tapHint,
+    this.landmarkSlots = const [],
   });
 
   final List<NotationPitch> pool;
@@ -67,6 +71,7 @@ final class PlacementStaffCard extends StatelessWidget {
   final int? correctHighlightSlot;
   final bool expandToFill;
   final String? tapHint;
+  final List<int> landmarkSlots;
 
   @override
   Widget build(BuildContext context) {
@@ -83,6 +88,7 @@ final class PlacementStaffCard extends StatelessWidget {
         highlightSlot: highlightSlot,
         wrongHighlightSlot: wrongHighlightSlot,
         correctHighlightSlot: correctHighlightSlot,
+        landmarkSlots: landmarkSlots,
         onSlot: onSlot,
       ),
     );

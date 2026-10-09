@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_detect_pitch/flutter_detect_pitch.dart';
 
 import '../l10n/app_strings.dart';
 import '../models/guitar_note.dart';
 import '../models/practice_prefs.dart';
+import '../services/diag_recorder.dart';
 import '../services/guitar_audio_service.dart';
 import '../services/practice_prefs_repository.dart';
 import '../theme/app_spacing.dart';
@@ -29,6 +31,7 @@ final class _GuitarTunerScreenState extends State<GuitarTunerScreen> {
   final _prefsRepo = PracticePrefsRepository();
   final _audio = GuitarAudioService.instance;
   final _mic = MicPitchSession();
+  final _diag = DiagRecorder();
   final _hzSmoother = PitchReadingSmoother(
     alpha: 0.07,
     maxJumpCents: 260,
@@ -169,6 +172,9 @@ final class _GuitarTunerScreenState extends State<GuitarTunerScreen> {
     if (!mounted || !_listening) {
       return;
     }
+    if (kDebugMode && frame.pcm != null && frame.sampleRate != null) {
+      _diag.add(frame.pcm!, frame.sampleRate!);
+    }
     if (frame.rms < MicEnergyGate.tunerMinRms) {
       _quietStreak++;
       if (_quietStreak >= MicEnergyGate.quietFramesToClearTuner) {
@@ -236,7 +242,7 @@ final class _GuitarTunerScreenState extends State<GuitarTunerScreen> {
   }
 
   Future<void> _playReference() async {
-    await _audio.playMidi(_openNote.midi);
+    await _audio.playMidi(_openNote.midi, referenceA4: _prefs.referenceA4Hz);
   }
 
   @override
@@ -269,6 +275,21 @@ final class _GuitarTunerScreenState extends State<GuitarTunerScreen> {
                         ),
                       ),
                     ),
+                    if (kDebugMode)
+                      IconButton(
+                        tooltip: 'Tanı kaydı (son 6 sn)',
+                        icon: const Icon(Icons.save_alt_rounded),
+                        color: DesignTokens.slate400,
+                        onPressed: () async {
+                          final messenger = ScaffoldMessenger.of(context);
+                          final path = await _diag.save('tuner');
+                          if (path != null) {
+                            messenger.showSnackBar(
+                              SnackBar(content: Text('Kaydedildi: ${path.split('/').last}')),
+                            );
+                          }
+                        },
+                      ),
                     if (_listening)
                       IconButton(
                         onPressed: _stopMic,

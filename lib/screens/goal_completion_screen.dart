@@ -41,25 +41,70 @@ final class GoalCompletionScreen extends StatelessWidget {
                   ),
               const CelebrationBurst(),
               const SizedBox(height: AppSpacing.sm),
-              Icon(
-                Icons.emoji_events_rounded,
-                size: 56,
-                color: DesignTokens.green400,
+              // Kupa ikonu artık düz bir ikon değil, kutlama vurgusunu
+              // taşıyan yumuşak parlamalı bir rozet içinde.
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: DesignTokens.green400.withValues(alpha: 0.14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: DesignTokens.green400.withValues(alpha: 0.35),
+                      blurRadius: 32,
+                      spreadRadius: 4,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.emoji_events_rounded,
+                  size: 56,
+                  color: DesignTokens.green400,
+                ),
               )
                   .animate()
                   .fadeIn(delay: 120.ms)
+                  .scale(
+                    begin: const Offset(0.7, 0.7),
+                    end: const Offset(1, 1),
+                    duration: 420.ms,
+                    curve: Curves.easeOutBack,
+                  )
                   .slideY(begin: 0.15, end: 0, duration: 400.ms),
-              const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.lg),
+              // Hero istatistik: doğruluk oranı, her şeyden önce göze
+              // çarpan büyük bir sayı olarak — geri kalanı destek detayı.
+              Text(
+                '${(s.accuracy * 100).round()}%',
+                textAlign: TextAlign.center,
+                style: t.displaySmall?.copyWith(
+                  color: DesignTokens.green400,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 56,
+                ),
+              ).animate().fadeIn(delay: 200.ms).scale(
+                    begin: const Offset(0.85, 0.85),
+                    end: const Offset(1, 1),
+                    duration: 380.ms,
+                    curve: Curves.easeOutBack,
+                  ),
+              Text(
+                AppStrings.accuracy,
+                textAlign: TextAlign.center,
+                style: t.labelLarge?.copyWith(
+                  color: DesignTokens.slate400,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
               SoftCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Doğruluk artık yukarıda hero istatistik olarak
+                    // gösteriliyor, burada tekrarlanmıyor.
                     _row(t, AppStrings.attempts, '${s.total}'),
-                    _row(
-                      t,
-                      AppStrings.accuracy,
-                      '${(s.accuracy * 100).round()}%',
-                    ),
                     _row(
                       t,
                       AppStrings.avgTime,

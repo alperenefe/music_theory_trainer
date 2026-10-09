@@ -60,11 +60,21 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
   String? _picked;
   String? _wrongYourAnswer;
   String? _wrongCorrectAnswer;
+  var _refA4 = PracticePrefs.defaultReferenceA4Hz;
 
   @override
   void initState() {
     super.initState();
     _bootstrap();
+    _loadPrefsRef();
+  }
+
+  Future<void> _loadPrefsRef() async {
+    final p = await _prefsRepo.load();
+    if (!mounted) {
+      return;
+    }
+    setState(() => _refA4 = p.referenceA4Hz);
   }
 
   Future<void> _bootstrap() async {
@@ -92,7 +102,7 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
       _wrongCorrectAnswer = null;
       _opts = GuitarNote.mcqOptionsForMidi(_target.midi, _allNotes, _rnd);
     });
-    _audio.playMidi(_target.midi);
+    _audio.playMidi(_target.midi, referenceA4: _refA4);
   }
 
   Map<GuitarNote, FretboardCellState> _buildCellStates() {
@@ -132,7 +142,7 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
       }
     });
     if (ok) {
-      _audio.playMidi(_target.midi);
+      _audio.playMidi(_target.midi, referenceA4: _refA4);
     }
     final done = await GoalTracker.onAttemptRecorded(
       exercise: AppStrings.exerciseGuitarMcq,
@@ -200,8 +210,10 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
                                       ),
                                     ),
                                     IconButton(
-                                      onPressed: () =>
-                                          _audio.playMidi(_target.midi),
+                                      onPressed: () => _audio.playMidi(
+                                        _target.midi,
+                                        referenceA4: _refA4,
+                                      ),
                                       icon: const Icon(Icons.volume_up_rounded),
                                       color: DesignTokens.slate300,
                                     ),
@@ -210,8 +222,10 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
                                 const SizedBox(height: AppSpacing.sm),
                                 FretboardWidget(
                                   cellStates: _buildCellStates(),
-                                  onCellTap: (_) =>
-                                      _audio.playMidi(_target.midi),
+                                  onCellTap: (_) => _audio.playMidi(
+                                    _target.midi,
+                                    referenceA4: _refA4,
+                                  ),
                                   height: 190,
                                 ),
                               ],
@@ -249,7 +263,11 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
                               ),
                               child: Material(
                                 color: Colors.transparent,
-                                child: InkWell(
+                                child: Semantics(
+                                  button: true,
+                                  selected: picked,
+                                  label: 'Şık: $o',
+                                  child: InkWell(
                                   borderRadius: BorderRadius.circular(
                                     AppRadii.md,
                                   ),
@@ -271,6 +289,7 @@ final class _FretMcqScreenState extends State<FretMcqScreen> {
                                         fontSize: 22,
                                       ),
                                     ),
+                                  ),
                                   ),
                                 ),
                               ),

@@ -14,6 +14,17 @@ final class FretboardCellState {
   final bool selected;
   final bool correct;
   final bool incorrect;
+
+  @override
+  bool operator ==(Object other) =>
+      other is FretboardCellState &&
+      other.highlighted == highlighted &&
+      other.selected == selected &&
+      other.correct == correct &&
+      other.incorrect == incorrect;
+
+  @override
+  int get hashCode => Object.hash(highlighted, selected, correct, incorrect);
 }
 
 final class FretboardPainter extends CustomPainter {
@@ -183,19 +194,32 @@ final class FretboardPainter extends CustomPainter {
 
     Color fill;
     Color border;
+    Color? glow;
 
     if (state.correct) {
       fill = DesignTokens.green400.withValues(alpha: 0.85);
       border = DesignTokens.green400;
+      glow = DesignTokens.green400;
     } else if (state.incorrect) {
       fill = DesignTokens.rose400.withValues(alpha: 0.85);
       border = DesignTokens.rose400;
+      glow = DesignTokens.rose400;
     } else if (state.highlighted) {
       fill = DesignTokens.blue600.withValues(alpha: 0.9);
       border = DesignTokens.blue500;
     } else {
       fill = DesignTokens.blue500.withValues(alpha: 0.5);
       border = DesignTokens.blue500;
+    }
+
+    // Doğru/yanlış geri bildiriminde kulak eğitimi modülündeki (EarOptionButton)
+    // yumuşak parlama efektiyle aynı dil — düz bir daireden daha "canlı" bir
+    // tepki verir.
+    if (glow != null) {
+      final glowPaint = Paint()
+        ..color = glow.withValues(alpha: 0.45)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+      canvas.drawCircle(center, r * 1.6, glowPaint);
     }
 
     canvas.drawCircle(center, r, Paint()..color = fill);
@@ -219,7 +243,19 @@ final class FretboardPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant FretboardPainter old) =>
-      old.cellStates != cellStates ||
       old.minFret != minFret ||
-      old.maxFret != maxFret;
+      old.maxFret != maxFret ||
+      !_cellStatesEqual(old.cellStates, cellStates);
+
+  static bool _cellStatesEqual(
+    Map<GuitarNote, FretboardCellState> a,
+    Map<GuitarNote, FretboardCellState> b,
+  ) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (final entry in a.entries) {
+      if (b[entry.key] != entry.value) return false;
+    }
+    return true;
+  }
 }

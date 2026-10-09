@@ -21,21 +21,27 @@ final class PracticeAttempt {
     'atMillis': atMillis,
   };
 
-  static int _i(Object? v) {
-    if (v is int) {
-      return v;
-    }
-    if (v is num) {
-      return v.toInt();
-    }
-    throw FormatException('int bekleniyordu: $v');
+  static int _i(Object? v, [int fallback = 0]) {
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    return fallback;
+  }
+
+  static bool _b(Object? v, [bool fallback = false]) {
+    if (v is bool) return v;
+    return fallback;
+  }
+
+  static String _s(Object? v, [String fallback = '']) {
+    if (v is String) return v;
+    return fallback;
   }
 
   static PracticeAttempt fromJson(Map<String, Object?> j) {
     return PracticeAttempt(
-      exercise: j['exercise']! as String,
+      exercise: _s(j['exercise']),
       midi: _i(j['midi']),
-      correct: j['correct']! as bool,
+      correct: _b(j['correct']),
       latencyMs: _i(j['latencyMs']),
       atMillis: _i(j['atMillis']),
     );

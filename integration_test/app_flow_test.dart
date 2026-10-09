@@ -65,7 +65,10 @@ void main() {
     (tester) async {
       await openHomeRoute(tester, AppStrings.placementTitle);
       expect(find.widgetWithText(FilledButton, AppStrings.start), findsOneWidget);
-      expect(find.text(AppStrings.exerciseStatsTitle), findsNothing);
+      expect(
+        find.widgetWithText(OutlinedButton, AppStrings.exerciseStatsTitle),
+        findsOneWidget,
+      );
     },
     timeout: const Timeout(Duration(minutes: 2)),
   );

@@ -23,6 +23,7 @@ final class FeedbackBottomBar extends StatefulWidget {
     this.placementOffsetHint,
     this.style = FeedbackBottomBarStyle.standard,
     this.embedded = false,
+    this.showNextButton = true,
   });
 
   final bool show;
@@ -36,6 +37,8 @@ final class FeedbackBottomBar extends StatefulWidget {
   final FeedbackBottomBarStyle style;
   /// Sabit alt slotta; overlay değil — porte yüksekliği değişmez.
   final bool embedded;
+  /// Doğru cevapta otomatik geçişte «Sonraki» gizlenebilir.
+  final bool showNextButton;
 
   @override
   State<FeedbackBottomBar> createState() => _FeedbackBottomBarState();
@@ -219,10 +222,11 @@ final class _FeedbackBottomBarState extends State<FeedbackBottomBar> {
           ],
         ],
         const SizedBox(height: AppSpacing.sm),
-        FilledButton(
-          onPressed: widget.onNext,
-          child: Text(AppStrings.next),
-        ),
+        if (widget.showNextButton)
+          FilledButton(
+            onPressed: widget.onNext,
+            child: Text(AppStrings.next),
+          ),
       ],
     );
 

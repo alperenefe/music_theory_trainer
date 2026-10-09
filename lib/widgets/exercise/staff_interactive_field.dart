@@ -21,6 +21,7 @@ final class StaffInteractiveField extends StatefulWidget {
     this.layoutSlots,
     this.pickableSlots,
     this.fitExercisePool = false,
+    this.landmarkSlots = const [],
   });
 
   final List<TrebleStaffNoteSpec> notes;
@@ -34,6 +35,7 @@ final class StaffInteractiveField extends StatefulWidget {
   final Iterable<int>? layoutSlots;
   final Iterable<int>? pickableSlots;
   final bool fitExercisePool;
+  final List<int> landmarkSlots;
 
   @override
   State<StaffInteractiveField> createState() => _StaffInteractiveFieldState();
@@ -91,6 +93,7 @@ final class _StaffInteractiveFieldState extends State<StaffInteractiveField> {
           highlightSlot: widget.highlightSlot,
           wrongHighlightSlot: widget.wrongHighlightSlot,
           correctHighlightSlot: widget.correctHighlightSlot,
+          landmarkSlots: widget.landmarkSlots,
         );
         final core = Semantics(
           label: widget.readOnly

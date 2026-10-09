@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
-import 'staff_exercise_range.dart';
 import '../models/notation_pitch.dart';
 import '../screens/chord_mcq_screen.dart';
 import '../screens/fret_mcq_screen.dart';
@@ -13,6 +12,7 @@ import '../screens/interval_mcq_screen.dart';
 import '../screens/mcq_screen.dart';
 import '../screens/placement_screen.dart';
 import '../screens/scale_sequence_screen.dart';
+import '../widgets/exercise/curriculum_phase_card.dart';
 import 'exercise_route.dart';
 import 'goal_kind.dart';
 import '../services/practice_prefs_repository.dart';
@@ -71,12 +71,8 @@ final List<HomeRouteSpec> homeRouteSpecs = [
       description: AppStrings.placementDesc,
       exerciseId: AppStrings.exercisePlacement,
       goalKind: GoalKind.placement,
-      buildPractice: (_) => PlacementScreen(
-        pool: NotationPitch.poolForMidiRange(
-          StaffExerciseRange.minMidi,
-          StaffExerciseRange.maxMidi,
-        ),
-      ),
+      buildPractice: (_) => const PlacementScreen(),
+      extraContent: CurriculumPhaseCard(prefsRepo: d.prefsRepo),
     ),
   ),
   HomeRouteSpec(
@@ -92,12 +88,8 @@ final List<HomeRouteSpec> homeRouteSpecs = [
       description: AppStrings.mcqDesc,
       exerciseId: AppStrings.exerciseMcq,
       goalKind: GoalKind.mcq,
-      buildPractice: (_) => McqScreen(
-        pool: NotationPitch.poolForMidiRange(
-          StaffExerciseRange.minMidi,
-          StaffExerciseRange.maxMidi,
-        ),
-      ),
+      buildPractice: (_) => const McqScreen(),
+      extraContent: CurriculumPhaseCard(prefsRepo: d.prefsRepo),
     ),
   ),
   HomeRouteSpec(

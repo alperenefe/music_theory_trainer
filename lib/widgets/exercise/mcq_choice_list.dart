@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
@@ -74,36 +75,52 @@ final class _McqChoiceTile extends StatelessWidget {
     } else if (isPicked && !feedback) {
       border = DesignTokens.blue500;
     }
-    return Semantics(
+    Widget tile = Semantics(
       button: true,
       label: 'Şık: $label',
       selected: isPicked,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
+      child: Container(
+        // Doğru cevapta kulak eğitimi modülündeki gibi yumuşak bir parlama
+        // (glow) — geri bildirim burada da aynı "canlılık" hissini versin.
+        decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadii.md),
-          onTap: feedback ? null : () => onPick(label),
-          child: Ink(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm,
-              vertical: AppSpacing.md,
-            ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppRadii.md),
-              color: bg,
-              border: Border.all(color: border),
-            ),
-            child: Center(
-              child: Text(
-                label,
-                textAlign: TextAlign.center,
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
-                style: t.titleSmall?.copyWith(
-                  color: DesignTokens.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 15,
-                  height: 1.2,
+          boxShadow: showOk
+              ? [
+                  BoxShadow(
+                    color: DesignTokens.green400.withValues(alpha: 0.32),
+                    blurRadius: 18,
+                    spreadRadius: 1,
+                  ),
+                ]
+              : null,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(AppRadii.md),
+            onTap: feedback ? null : () => onPick(label),
+            child: Ink(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm,
+                vertical: AppSpacing.md,
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppRadii.md),
+                color: bg,
+                border: Border.all(color: border, width: showOk || showBad ? 2 : 1),
+              ),
+              child: Center(
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                  style: t.titleSmall?.copyWith(
+                    color: DesignTokens.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                    height: 1.2,
+                  ),
                 ),
               ),
             ),
@@ -111,5 +128,18 @@ final class _McqChoiceTile extends StatelessWidget {
         ),
       ),
     );
+
+    // Yanlış şıkta sallanma, doğru şıkta hafif büyüyüp geri dönme —
+    // EarOptionButton'daki (kulak eğitimi) geri bildirim diliyle aynı.
+    if (!AppMotion.reduced(context)) {
+      tile = tile
+          .animate(target: showBad ? 1 : 0)
+          .shakeX(hz: 5, amount: 5, duration: 380.ms)
+          .animate(target: showOk ? 1 : 0)
+          .scaleXY(begin: 1, end: 1.06, duration: 180.ms, curve: Curves.easeOutBack)
+          .then()
+          .scaleXY(begin: 1.06, end: 1, duration: 220.ms, curve: Curves.easeInOut);
+    }
+    return tile;
   }
 }

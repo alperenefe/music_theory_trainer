@@ -51,3 +51,6 @@ android/app/upload-keystore.jks
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# telefon yedekleri (kişisel veri)
+backups/

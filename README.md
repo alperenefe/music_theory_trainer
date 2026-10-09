@@ -10,7 +10,12 @@ Sol anahtar üzerinde **doğal notalarla** portre pratiği, **gitar fretboard** 
 |------|----------|
 | **Portede yerleştir** | Hedef notanın portede doğru çizgi/aralığa denk geldiği yeri seçip onaylama. |
 | **Notayı tanı** | Portede gösterilen doğal notanın adını çoktan seçmeli olarak işaretleme. |
-| **Hedef ve aralık** | Egzersiz türüne göre hedef deneme sayısı; portre egzersizleri için **MIDI nota aralığı** (varsayılan gitar 0–7 ile uyumlu **40–71**). Ses açık/kapalı. |
+| **Akor ve Aralık Pratiği** | Müzik teorisi için akorları (Chords) ve aralıkları (Intervals) çoktan seçmeli tanıma egzersizleri. |
+| **Gamlar (Scales)** | Belirli gam dizilimlerini (Scale Sequences) portede veya klavyede çalışma. |
+| **Gitar Akort Cihazı (Tuner)** | Mikrofon kullanarak gitarınızı akort edebileceğiniz yerleşik tuner (hassas gauge ve frekans okuma). |
+| **Özel Antrenman (Custom Workout)** | Kendi çalışma programınızı ve hedef egzersizlerinizi oluşturabilme. |
+| **Aralıklı Tekrar (SRS)** | Öğrenmeyi pekiştirmek için Spaced Repetition System (aralıklı tekrar) mekanizması. |
+| **Müfredat (Curriculum & Phases)** | Konuları adım adım açmanızı sağlayan aşama (phase) kilit açma sistemi. |
 | **Gitarda nota ne?** | Vurgulanan perde için nota adı (MCQ). |
 | **Gitarda notayı bul** | Verilen notayı fretboard üzerinde dokunarak bulma; aynı pitch’te birden fazla perde doğru sayılır. |
 | **Gitarda notayı çal** | Hedef notayı kendi gitarından çalma; mikrofon frekanstan nota adı çıkarır (arka plan sessizliği ve tek nota önerilir). |

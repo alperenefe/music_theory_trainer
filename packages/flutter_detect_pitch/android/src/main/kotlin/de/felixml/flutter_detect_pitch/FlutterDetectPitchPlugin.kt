@@ -96,16 +96,28 @@ class FlutterDetectPitchPlugin : FlutterPlugin, EventChannel.StreamHandler {
         val r = recorder?.read(buffer, 0, readLen) ?: 0
         if (r > 0) {
           val rmsLin = rmsS16(buffer, r)
+          // Eski, kaba sıfır-geçiş tahmini: yalnızca ham veriyi çözemeyen
+          // istemciler için geriye dönük uyumluluk. Asıl perde/akor/vuruş
+          // analizi Dart tarafında ham PCM üzerinden yapılır.
           val frequency = detectFrequency(buffer, r)
-          if (frequency > 0 && isRecording) {
+          if (isRecording) {
             val hz = frequency.toDouble()
             val norm = (rmsLin / 11000.0).coerceIn(0.0, 1.0)
+            // 16-bit little-endian PCM.
+            val pcm = ByteArray(r * 2)
+            for (i in 0 until r) {
+              val v = buffer[i].toInt()
+              pcm[2 * i] = (v and 0xFF).toByte()
+              pcm[2 * i + 1] = ((v shr 8) and 0xFF).toByte()
+            }
             mainHandler.post {
               if (isRecording) {
                 eventSink?.success(
                   mapOf(
                     "hz" to hz,
                     "rms" to norm,
+                    "pcm" to pcm,
+                    "sampleRate" to SAMPLE_RATE,
                   ),
                 )
               }

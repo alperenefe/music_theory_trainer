@@ -20,6 +20,7 @@ final class HomeGridCard extends StatelessWidget {
     required this.index,
     this.goalProgress,
     this.micBadge = false,
+    this.phaseBadge,
   });
 
   final IconData icon;
@@ -30,6 +31,9 @@ final class HomeGridCard extends StatelessWidget {
   final int index;
   final GoalProgressSnapshot? goalProgress;
   final bool micBadge;
+
+  /// Müfredat faz rozeti — porte notası egzersizleri için gösterilir.
+  final String? phaseBadge;
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +69,32 @@ final class HomeGridCard extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      if (micBadge)
+                      if (phaseBadge != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: DesignTokens.violet400
+                                .withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: DesignTokens.violet400.withValues(
+                                alpha: 0.4,
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            phaseBadge!,
+                            style: t.labelSmall?.copyWith(
+                              color: DesignTokens.violet400,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        )
+                      else if (micBadge)
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 6,

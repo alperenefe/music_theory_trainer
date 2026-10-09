@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/guitar_note.dart';
@@ -100,6 +99,51 @@ final class _FretboardWidgetState extends State<FretboardWidget>
     }
   }
 
+  List<Widget> _semanticsOverlay(FretboardPainter painter, Size size) {
+    const rightPad = FretboardPainter.fingerboardRightPad;
+    const topPad = FretboardPainter.boardTopPad;
+    const botPad = FretboardPainter.boardBottomPad;
+    final endX = size.width - rightPad;
+    final strH = (size.height - topPad - botPad) / 5;
+    final cellW = widget.minFret == 0
+        ? (endX - FretboardPainter.nutX) /
+            (widget.maxFret - widget.minFret).clamp(1, 1 << 30)
+        : (endX - FretboardPainter.nutX) /
+            (widget.maxFret - widget.minFret + 1);
+
+    final out = <Widget>[];
+    for (var s = 0; s < 6; s++) {
+      for (var f = widget.minFret; f <= widget.maxFret; f++) {
+        final note = GuitarNote(string: s, fret: f);
+        final center = painter.cellCenter(size, note);
+        final state = widget.cellStates[note];
+        final descriptors = <String>[
+          if (state?.selected == true) 'seçili',
+          if (state?.correct == true) 'doğru',
+          if (state?.incorrect == true) 'yanlış',
+        ];
+        final label = descriptors.isEmpty
+            ? note.positionLabel
+            : '${note.positionLabel}, ${descriptors.join(', ')}';
+        out.add(
+          Positioned(
+            left: center.dx - cellW / 2,
+            top: center.dy - strH / 2,
+            width: cellW,
+            height: strH,
+            child: Semantics(
+              button: true,
+              label: label,
+              onTap: () => widget.onCellTap(note),
+              child: const SizedBox.expand(),
+            ),
+          ),
+        );
+      }
+    }
+    return out;
+  }
+
   int _highlightSig(Map<GuitarNote, FretboardCellState> m) {
     var h = 17;
     for (final e in m.entries) {
@@ -125,33 +169,42 @@ final class _FretboardWidgetState extends State<FretboardWidget>
               minFret: widget.minFret,
               maxFret: widget.maxFret,
             );
-            return GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTapDown: (d) {
-                final note = FretboardWidget.hitTestAt(
-                  d.localPosition,
-                  constraints.biggest,
-                  minFret: widget.minFret,
-                  maxFret: widget.maxFret,
-                );
-                if (note != null) {
-                  widget.onCellTap(note);
-                }
-              },
-              child: RepaintBoundary(
-                child: AnimatedBuilder(
-                  animation: _pulse,
-                  builder: (context, _) {
-                    return Transform.scale(
-                      scale: scale.value,
-                      child: CustomPaint(
-                        painter: painter,
-                        size: constraints.biggest,
-                      ),
+            return Stack(
+              children: [
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapDown: (d) {
+                    final note = FretboardWidget.hitTestAt(
+                      d.localPosition,
+                      constraints.biggest,
+                      minFret: widget.minFret,
+                      maxFret: widget.maxFret,
                     );
+                    if (note != null) {
+                      widget.onCellTap(note);
+                    }
                   },
+                  child: RepaintBoundary(
+                    child: AnimatedBuilder(
+                      animation: _pulse,
+                      builder: (context, _) {
+                        return Transform.scale(
+                          scale: scale.value,
+                          child: CustomPaint(
+                            painter: painter,
+                            size: constraints.biggest,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
-              ),
+                // Ekran okuyucu için görünmez erişilebilirlik katmanı: gerçek
+                // dokunma isabet testi hâlâ yukarıdaki GestureDetector'da
+                // (özel perde/tel geometrisiyle), bu yüzden normal dokunuşları
+                // etkilemez.
+                ..._semanticsOverlay(painter, constraints.biggest),
+              ],
             );
           },
         ),

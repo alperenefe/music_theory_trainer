@@ -6,6 +6,7 @@ import '../../theme/app_spacing.dart';
 import '../../theme/design_tokens.dart';
 import '../../widgets/cards/soft_card.dart';
 import '../../widgets/goals/goal_metrics_compact_panel.dart';
+import '../../widgets/stats/accuracy_progress_bar.dart';
 
 final class PerActivityGoalTile extends StatelessWidget {
   const PerActivityGoalTile({
@@ -59,6 +60,30 @@ final class PerActivityGoalTile extends StatelessWidget {
           ),
           ),
           if (goal.enabled) ...[
+            const SizedBox(height: AppSpacing.sm),
+            // Hedef kartı şimdiye kadar sadece bir AYAR formuydu — ilerlemeyi
+            // hiç göstermiyordu. Kullanıcı "ne kadar yaklaştım?" sorusuna tek
+            // bakışta cevap alamıyordu. Bu satır o boşluğu dolduruyor.
+            Row(
+              children: [
+                Expanded(
+                  child: AccuracyProgressBar(
+                    accuracy: goal.target <= 0
+                        ? 0
+                        : (goal.progress / goal.target).clamp(0.0, 1.0),
+                    height: 6,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Text(
+                  '${goal.progress}/${goal.target}',
+                  style: t.labelMedium?.copyWith(
+                    color: DesignTokens.slate300,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: AppSpacing.sm),
             GoalMetricsCompactPanel(
               targetCount: goal.target,

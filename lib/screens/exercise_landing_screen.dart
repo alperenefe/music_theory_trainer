@@ -7,11 +7,13 @@ import '../services/goal_progress_snapshot.dart';
 import '../services/practice_prefs_repository.dart';
 import '../services/stats_repository.dart';
 import '../theme/app_spacing.dart';
+import '../screens/stats_screen.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
 import '../widgets/exercise/exercise_screen_top_bar.dart';
 import '../widgets/exercise/exercise_landing_preview.dart';
 import '../widgets/home/activity_goal_progress_strip.dart';
 import '../widgets/loading/home_list_skeleton.dart';
+import '../widgets/stats/exercise_landing_stats_section.dart';
 
 /// Egzersiz öncesi: önizleme + hedef; Başla sabit altta.
 final class ExerciseLandingScreen extends StatefulWidget {
@@ -24,6 +26,7 @@ final class ExerciseLandingScreen extends StatefulWidget {
     required this.guitarStyleLabels,
     required this.prefsRepo,
     required this.buildPractice,
+    this.extraContent,
   });
 
   final String title;
@@ -34,6 +37,9 @@ final class ExerciseLandingScreen extends StatefulWidget {
   final PracticePrefsRepository prefsRepo;
   final Widget Function() buildPractice;
 
+  /// Landing içeriğine eklenecek isteğe bağlı widget (örn. müfredat kartı).
+  final Widget? extraContent;
+
   @override
   State<ExerciseLandingScreen> createState() => _ExerciseLandingScreenState();
 }
@@ -43,6 +49,7 @@ final class _ExerciseLandingScreenState extends State<ExerciseLandingScreen> {
   var _loading = true;
   var _rows = <PracticeAttempt>[];
   GoalProgressSnapshot? _goalProgress;
+  var _goalPeriodActive = false;
 
   @override
   void initState() {
@@ -70,8 +77,22 @@ final class _ExerciseLandingScreenState extends State<ExerciseLandingScreen> {
     setState(() {
       _rows = rows;
       _goalProgress = goal;
+      _goalPeriodActive = activeGoal?.enabled == true;
       _loading = false;
     });
+  }
+
+  Future<void> _openExerciseStats() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => StatsScreen(
+          initialExerciseFilter: widget.exerciseId,
+        ),
+      ),
+    );
+    if (mounted) {
+      await _refresh();
+    }
   }
 
   Future<void> _startPractice() async {
@@ -133,6 +154,10 @@ final class _ExerciseLandingScreenState extends State<ExerciseLandingScreen> {
                             goalKind: widget.goalKind,
                             compact: true,
                           ),
+                          if (widget.extraContent != null) ...[
+                            const SizedBox(height: AppSpacing.sm),
+                            widget.extraContent!,
+                          ],
                           if (_goalProgress != null && _rows.isEmpty) ...[
                             const SizedBox(height: AppSpacing.sm),
                             ActivityGoalProgressStrip(
@@ -140,6 +165,12 @@ final class _ExerciseLandingScreenState extends State<ExerciseLandingScreen> {
                               variant: GoalProgressVariant.landingDual,
                             ),
                           ],
+                          const SizedBox(height: AppSpacing.sm),
+                          ExerciseLandingStatsSection(
+                            rows: _rows,
+                            goalPeriodActive: _goalPeriodActive,
+                            onOpenStats: _openExerciseStats,
+                          ),
                         ],
                       ),
                     ),

@@ -48,4 +48,15 @@ abstract final class DesignTokens {
   static const cardBg = slate800;
   static const borderSubtle = slate700;
   static const glowBlue = Color(0x332563EB);
+
+  // Ear Training Paleti
+  static const earAmber = Color(0xFFF59E0B);
+  static const earEmerald = Color(0xFF10B981);
+  static const earViolet = Color(0xFF8B5CF6);
+  static const earRose = Color(0xFFF43F5E);
+  static const earCyan = Color(0xFF06B6D4);
+  static const earGold = Color(0xFFFBBF24);
+  static const weekLocked = Color(0xFF1E293B);
+  static const weekActive = Color(0xFF2563EB);
+  static const weekDone = Color(0xFF059669);
 }

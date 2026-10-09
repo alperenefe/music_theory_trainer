@@ -56,7 +56,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
 
     expect(find.widgetWithText(FilledButton, AppStrings.start), findsOneWidget);
-    expect(find.text(AppStrings.exerciseStatsTitle), findsNothing);
+    expect(find.text(AppStrings.exerciseStatsTitle), findsWidgets);
+    expect(
+      find.widgetWithText(OutlinedButton, AppStrings.exerciseStatsTitle),
+      findsOneWidget,
+    );
 
     await tester.tap(find.widgetWithText(FilledButton, AppStrings.start));
     await tester.pump();

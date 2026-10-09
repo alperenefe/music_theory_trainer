@@ -17,9 +17,14 @@ final class _MusicTheoryAppState extends State<MusicTheoryApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: AppStrings.appTitle,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      // Uygulama koyu temaya göre tasarlandı (DesignTokens'taki tüm renkler
+      // sabit koyu-tema değerleri: white/slate900 gibi). Yalnızca kulak
+      // eğitimi modülü (EarPalette) açık temaya da uyumlu hale getirildi;
+      // geri kalan her ekran (ana ekran, gitar, MCQ, tuner, istatistik)
+      // sistem açık temadayken bozuk/görünmez metin riski taşıyordu. Bu
+      // yüzden tema tek ve sabit tutuluyor: ThemeMode.system yerine her
+      // zaman koyu tema.
+      theme: AppTheme.dark,
       builder: (context, child) {
         if (child == null) {
           return const SizedBox.shrink();

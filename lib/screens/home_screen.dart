@@ -14,7 +14,11 @@ import '../theme/design_tokens.dart';
 import '../widgets/background/mesh_gradient_backdrop.dart';
 import '../screens/goals_screen.dart';
 import '../screens/guitar_tuner_screen.dart';
-import '../widgets/home/home_grid_card.dart';
+import 'ear_training/ear_home_screen.dart';
+import '../widgets/home/ear_training_banner.dart';
+import '../widgets/home/guitar_path_banner.dart';
+import 'guitar/guitar_path_screen.dart';
+import '../widgets/home/home_roadmap_node.dart';
 import '../widgets/home/home_route_card.dart';
 import '../widgets/home/home_stats_banner.dart';
 import '../widgets/home/home_twin_cta_row.dart';
@@ -102,6 +106,22 @@ final class _HomeScreenState extends State<HomeScreen> {
     await _refresh();
   }
 
+  Future<void> _openGuitarPath() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(builder: (_) => GuitarPathScreen(repo: _prefsRepo)),
+    );
+    await _refresh();
+  }
+
+  Future<void> _openEarTraining() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => EarHomeScreen(prefsRepo: _prefsRepo),
+      ),
+    );
+    await _refresh();
+  }
+
   Future<void> _openRoute(HomeRouteSpec spec) async {
     final deps = HomeNavDeps(
       pool: _pool,
@@ -157,18 +177,10 @@ final class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _gridCard(HomeRouteSpec spec) {
-    return HomeGridCard(
-      index: spec.index,
-      icon: spec.icon,
-      title: spec.title,
-      subtitle: spec.subtitle,
-      accent: spec.accent,
-      goalProgress: _progressFor(spec),
-      micBadge: homeRouteShowsMicBadge(spec),
-      onTap: () => _openRoute(spec),
-    );
-  }
+  bool _isStaffExercise(HomeRouteSpec spec) =>
+      spec.index == 0 || spec.index == 1;
+
+  // _gridCard was removed as it's replaced by HomeRoadmapNode
 
   Widget _fullWidthCard(HomeRouteSpec spec) {
     return HomeRouteCard(
@@ -185,43 +197,37 @@ final class _HomeScreenState extends State<HomeScreen> {
 
   List<Widget> _buildSections() {
     final out = <Widget>[];
-    for (final section in homeSectionSpecs) {
+    bool isLeft = true;
+    for (int s = 0; s < homeSectionSpecs.length; s++) {
+      final section = homeSectionSpecs[s];
       out.add(_sectionHeader(section));
-      final gridSpecs = <HomeRouteSpec>[];
-      final fullSpecs = <HomeRouteSpec>[];
-      for (final idx in section.routeIndices) {
-        final spec = homeRouteByIndex(idx);
-        if (section.fullWidthIndices.contains(idx)) {
-          fullSpecs.add(spec);
+      
+      final specs = section.routeIndices.map((idx) => homeRouteByIndex(idx)).toList();
+      
+      for (int i = 0; i < specs.length; i++) {
+        final spec = specs[i];
+        final isLast = (s == homeSectionSpecs.length - 1) && (i == specs.length - 1);
+        
+        if (section.fullWidthIndices.contains(spec.index)) {
+          out.add(const SizedBox(height: AppSpacing.cardGap));
+          out.add(_fullWidthCard(spec));
+          out.add(const SizedBox(height: AppSpacing.cardGap));
         } else {
-          gridSpecs.add(spec);
+          out.add(
+            HomeRoadmapNode(
+              spec: spec,
+              isLeft: isLeft,
+              isLast: isLast,
+              goalProgress: _progressFor(spec),
+              micBadge: homeRouteShowsMicBadge(spec),
+              phaseBadge: _isStaffExercise(spec)
+                  ? AppStrings.phaseCurrent(_prefs.curriculumPhase)
+                  : null,
+              onTap: () => _openRoute(spec),
+            )
+          );
+          isLeft = !isLeft;
         }
-      }
-      for (var i = 0; i < gridSpecs.length; i += 2) {
-        final left = gridSpecs[i];
-        final right = i + 1 < gridSpecs.length ? gridSpecs[i + 1] : null;
-        out.add(
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: _gridCard(left)),
-              if (right != null) ...[
-                const SizedBox(width: AppSpacing.cardGap),
-                Expanded(child: _gridCard(right)),
-              ] else
-                const Expanded(child: SizedBox.shrink()),
-            ],
-          ),
-        );
-        if (i + 2 < gridSpecs.length) {
-          out.add(const SizedBox(height: AppSpacing.cardGap));
-        }
-      }
-      for (final spec in fullSpecs) {
-        if (gridSpecs.isNotEmpty) {
-          out.add(const SizedBox(height: AppSpacing.cardGap));
-        }
-        out.add(_fullWidthCard(spec));
       }
     }
     return out;
@@ -267,12 +273,16 @@ final class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       const SizedBox(height: AppSpacing.md),
+      GuitarPathBanner(prefs: _prefs, onTap: _openGuitarPath),
+      const SizedBox(height: AppSpacing.md),
+      EarTrainingBanner(
+        earProgress: _prefs.earWeekProgress,
+        onTap: _openEarTraining,
+      ),
+      const SizedBox(height: AppSpacing.md),
       HomeStatsBanner(attempts: _attempts),
       const SizedBox(height: AppSpacing.md),
-      HomeTwinCtaRow(
-        onTunerTap: _openTuner,
-        onGoalsTap: _openGoals,
-      ),
+      HomeTwinCtaRow(onGoalsTap: _openGoals),
       const SizedBox(height: AppSpacing.md),
       ..._buildSections(),
       const SizedBox(height: AppSpacing.lg),
@@ -287,6 +297,16 @@ final class _HomeScreenState extends State<HomeScreen> {
     ];
 
     return Scaffold(
+      // Akort aleti yan bir araç, ana ders akışının bir parçası değil —
+      // genişletilmiş (etiketli) FAB onu görsel olarak dersleri geride
+      // bırakacak kadar öne çıkarıyordu. Sade, ikon tabanlı bir FAB'a
+      // indirgeyip hâlâ tek dokunuşla erişilebilir tutuyoruz.
+      floatingActionButton: FloatingActionButton(
+        onPressed: _openTuner,
+        tooltip: AppStrings.homeCtaTuner,
+        backgroundColor: DesignTokens.tunerCyan,
+        child: const Icon(Icons.tune_rounded, color: Colors.white),
+      ),
       body: MeshGradientBackdrop(
         child: SafeArea(
           child: !_loaded

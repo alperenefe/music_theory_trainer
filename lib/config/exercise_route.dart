@@ -17,6 +17,7 @@ Widget exerciseLanding({
   required String exerciseId,
   required String? goalKind,
   required Widget Function(HomeNavDeps d) buildPractice,
+  Widget? extraContent,
 }) {
   return ExerciseLandingScreen(
     title: title,
@@ -26,5 +27,6 @@ Widget exerciseLanding({
     guitarStyleLabels: guitarStyleStatsFor(exerciseId),
     prefsRepo: deps.prefsRepo,
     buildPractice: () => buildPractice(deps),
+    extraContent: extraContent,
   );
 }

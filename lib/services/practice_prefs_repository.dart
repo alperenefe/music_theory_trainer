@@ -13,8 +13,18 @@ final class PracticePrefsRepository {
     if (raw == null || raw.isEmpty) {
       return const PracticePrefs();
     }
-    final j = jsonDecode(raw) as Map<String, dynamic>;
-    return PracticePrefs.fromJson(Map<String, Object?>.from(j));
+    Object? decoded;
+    try {
+      decoded = jsonDecode(raw);
+    } on FormatException {
+      return const PracticePrefs();
+    }
+    if (decoded is! Map) return const PracticePrefs();
+    try {
+      return PracticePrefs.fromJson(Map<String, Object?>.from(decoded));
+    } catch (_) {
+      return const PracticePrefs();
+    }
   }
 
   Future<void> save(PracticePrefs prefs) async {

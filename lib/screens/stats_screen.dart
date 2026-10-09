@@ -14,7 +14,13 @@ import '../widgets/stats/stats_summary_card.dart';
 import '../widgets/text/section_header.dart';
 
 final class StatsScreen extends StatefulWidget {
-  const StatsScreen({super.key});
+  const StatsScreen({
+    super.key,
+    this.initialExerciseFilter,
+  });
+
+  /// Egzersiz girişinden açılırsa bu etkinlik önceden seçili gelir.
+  final String? initialExerciseFilter;
 
   @override
   State<StatsScreen> createState() => _StatsScreenState();
@@ -40,6 +46,7 @@ final class _StatsScreenState extends State<StatsScreen> {
   @override
   void initState() {
     super.initState();
+    _exerciseFilter = widget.initialExerciseFilter;
     _future = _repo.load();
   }
 
@@ -50,11 +57,20 @@ final class _StatsScreenState extends State<StatsScreen> {
   }
 
   Future<void> _confirmAndClear() async {
+    final exerciseOnly = _exerciseFilter;
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(AppStrings.clearStatsConfirmTitle),
-        content: Text(AppStrings.clearStatsConfirmBody),
+        title: Text(
+          exerciseOnly != null
+              ? AppStrings.clearExerciseStatsTitle
+              : AppStrings.clearStatsConfirmTitle,
+        ),
+        content: Text(
+          exerciseOnly != null
+              ? AppStrings.clearExerciseStatsBody
+              : AppStrings.clearStatsConfirmBody,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -68,7 +84,11 @@ final class _StatsScreenState extends State<StatsScreen> {
       ),
     );
     if (ok == true) {
-      await _repo.clear();
+      if (exerciseOnly != null) {
+        await _repo.clearExercise(exerciseOnly);
+      } else {
+        await _repo.clear();
+      }
       _refresh();
     }
   }
@@ -125,8 +145,11 @@ final class _StatsScreenState extends State<StatsScreen> {
                 children: [
                   const ExerciseScreenTopBar(title: AppStrings.statsTitle),
                   // Filtre chips
+                  // Yükseklik, uygulamanın izin verdiği en büyük metin
+                  // ölçeğinde (1.28x) FilterChip etiketinin kırpılmamasına
+                  // yetecek kadar geniş tutuldu.
                   SizedBox(
-                    height: 44,
+                    height: 56,
                     child: ListView.separated(
                       padding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.md,
@@ -193,7 +216,11 @@ final class _StatsScreenState extends State<StatsScreen> {
                         const SizedBox(height: AppSpacing.lg),
                         OutlinedButton(
                           onPressed: _confirmAndClear,
-                          child: Text(AppStrings.clearStats),
+                          child: Text(
+                            _exerciseFilter != null
+                                ? AppStrings.clearExerciseStats
+                                : AppStrings.clearStats,
+                          ),
                         ),
                       ],
                     ),

@@ -31,20 +31,26 @@ final class CelebrationBurst extends StatelessWidget {
         ),
       );
     }
-    final rnd = Random(7);
+    // Sabit seed (Random(7)) her kutlamada BİREBİR AYNI patlama desenini
+    // oynatıyordu — ikinci hedef tamamlamadan sonra "wow" etkisini
+    // kaybediyordu. Gerçek rastgelelik + parça çeşitliliği (kare/daire,
+    // dönme) ile her kutlama farklı hissettiriyor.
+    final rnd = Random();
     return SizedBox(
-      height: 120,
+      height: 170,
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
-          for (var i = 0; i < 18; i++)
+          for (var i = 0; i < 24; i++)
             _Particle(
               color: _colors[i % _colors.length],
-              dx: (rnd.nextDouble() - 0.5) * 220,
-              dy: -40 - rnd.nextDouble() * 70,
-              delay: (30 * i).ms,
-              size: 6 + rnd.nextDouble() * 6,
+              dx: (rnd.nextDouble() - 0.5) * 280,
+              dy: -60 - rnd.nextDouble() * 100,
+              delay: (25 * i).ms,
+              size: 6 + rnd.nextDouble() * 7,
+              round: rnd.nextBool(),
+              turns: (rnd.nextDouble() - 0.5) * 1.4,
             ),
         ],
       ),
@@ -59,6 +65,8 @@ final class _Particle extends StatelessWidget {
     required this.dy,
     required this.delay,
     required this.size,
+    required this.round,
+    required this.turns,
   });
 
   final Color color;
@@ -67,14 +75,22 @@ final class _Particle extends StatelessWidget {
   final Duration delay;
   final double size;
 
+  /// true: daire konfeti, false: köşeli şerit — tek tip karelerden farklı,
+  /// gerçek bir konfeti karışımı hissi verir.
+  final bool round;
+
+  /// Düşerken dönme miktarı (tur cinsinden), yön ve hız parçadan parçaya değişir.
+  final double turns;
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: size,
-      height: size,
+      width: round ? size : size * 1.6,
+      height: round ? size : size * 0.6,
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(2),
+        shape: round ? BoxShape.circle : BoxShape.rectangle,
+        borderRadius: round ? null : BorderRadius.circular(2),
       ),
     )
         .animate()
@@ -93,6 +109,7 @@ final class _Particle extends StatelessWidget {
           delay: delay,
           curve: Curves.easeOut,
         )
+        .rotate(begin: 0, end: turns, duration: 820.ms, delay: delay)
         .scale(
           begin: const Offset(0.35, 0.35),
           end: const Offset(1, 1),

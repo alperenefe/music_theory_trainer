@@ -25,14 +25,17 @@ abstract final class PitchFromHz {
           (cents <= bestCents + 0.5 && c < bestHz);
       if (better) {
         bestCents = cents;
-        bestHz = ref;
+        // Katlanmış ama GERÇEK ölçülen frekansı (c) sakla — `ref` en yakın
+        // yarım sese yuvarlanmış "kusursuz" frekanstır. `ref`'i döndürürsek
+        // pesten/tizden ne kadar saptığı bilgisini burada siler, akort
+        // ibresi/cents okuması her zaman ~0 gösterir (akort her zaman
+        // "tam" görünür). Aynı düzeltme guitar_target_pitch_match.dart'taki
+        // foldToFundamental'da doğru yapılıyor (bestHz = candidate).
+        bestHz = c;
       }
     }
     return bestHz;
   }
-
-  @Deprecated('Use refineForGuitar')
-  static double octaveNestForGuitar(double hz) => refineForGuitar(hz);
 
   static int? midiFromHz(double hz, {double referenceA4 = 440}) {
     if (!hz.isFinite || hz <= 0) {

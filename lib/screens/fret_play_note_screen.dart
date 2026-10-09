@@ -380,7 +380,7 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
       _lastOk = true;
       _feedback = true;
     });
-    await _audio.playMidi(midi);
+    await _audio.playMidi(midi, referenceA4: _refA4);
     final done = await GoalTracker.onAttemptRecorded(
       exercise: AppStrings.exerciseGuitarPlay,
       statsRepo: _repo,
@@ -400,7 +400,7 @@ final class _FretPlayNoteScreenState extends State<FretPlayNoteScreen> {
   }
 
   Future<void> _previewTarget() async {
-    await _audio.playMidi(_targetNote.midi);
+    await _audio.playMidi(_targetNote.midi, referenceA4: _refA4);
   }
 
   @override

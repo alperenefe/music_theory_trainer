@@ -111,10 +111,6 @@ abstract final class AppStrings {
   static const goalMinMidi = 'En düşük nota';
   static const goalMaxMidi = 'En yüksek nota';
   static const goalSave = 'Kaydet';
-  static const appUpdateSection = 'Uzaktan güncelleme';
-  static const appUpdateHint =
-      'Telefonda indir/kur yok. PC (Tailscale): fast-phone -Project music -Wireless. '
-      'İlk kez: phone-adb-setup.ps1 (USB).';
   static const goalNone = 'Hedef yok';
   static const goalActive = 'Aktif hedef';
   static const goalCompletedTitle = 'Hedef tamamlandı';
@@ -216,6 +212,36 @@ abstract final class AppStrings {
       'Ana ekrandan sesi açıp kapatabilirsin. Geri bildirimde kısa titreşim ve ton kullanılır.';
   static const obNext = 'İleri';
   static const obStart = 'Başla';
+
+  // Müfredat
+  static String phaseUnlocked(int phase) =>
+      'Faz $phase açıldı — ${_phaseNotes(phase)} yeni nota eklendi!';
+  static String phaseCurrent(int phase) => 'Faz $phase';
+  static String phaseProgress(int phase, int total) =>
+      'Faz $phase / $total';
+  static String _phaseNotes(int phase) => switch (phase) {
+        2 => '4',
+        3 => '3',
+        4 => '3',
+        5 => '4',
+        _ => '?',
+      };
+
+  // Faz kilit açma ekranı
+  static String phaseUnlockTitle(int phase) => 'Faz $phase Açıldı! 🎉';
+  static const phaseUnlockSubtitle =
+      'Harika ilerleme! Yeni notalar seni bekliyor.';
+  static const phaseUnlockNewNotes = 'Yeni eklenen notalar';
+  static const phaseUnlockContinue = 'Antrenmanı sürdür';
+
+  // Landing — müfredat kartı
+  static String landingPhaseLabel(int phase, int total) =>
+      'Faz $phase / $total';
+  static const landingPhaseActiveNotes = 'Aktif notalar';
+  static const landingPhaseHint =
+      'Bu fazı tamamlamak için %80 doğrulukla 10 soru cevapla.';
+  static String landingPhaseProgress(int phase) =>
+      "Faz $phase'den devam ediyorsun";
 
   static const statsFilterAll = 'Tümü';
   static const statsFilterPlacement = 'Yerleştir';
